@@ -17,3 +17,8 @@ npm config get prefix add path to path
 run in powershel -Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 nodemon
+
+
+## use
+
+.\src\tools\deploy-commands.js
