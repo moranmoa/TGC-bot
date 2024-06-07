@@ -2,6 +2,11 @@
 
 TGC-bot
 
+add .env with
+TOKEN = MT......
+GUILD_ID = 23...
+BOT_ID = 124...
+
 ## Initiation window
 
 npm install
