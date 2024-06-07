@@ -2,7 +2,13 @@
 
 TGC-bot
 
-## Initiation
+## Initiation window
 
-npm i nodemon  
+npm install
+npm install -g nodemon
+
+npm config get prefix add path to path
+
+run in powershel -Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+
 nodemon
