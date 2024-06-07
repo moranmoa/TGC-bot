@@ -4,5 +4,5 @@ TGC-bot
 
 ## Initiation
 
-npm i nodemon
+npm i nodemon  
 nodemon
