@@ -1,6 +1,6 @@
 const { Events, ChannelType, VoiceChannel } = require("discord.js");
 const path = require("node:path");
-var aActiveChannels = [];
+// var aActiveChannels = [];
 // aActiveChannels [
 //   {id:"001",
 //   users:[dudiID],
@@ -43,12 +43,11 @@ module.exports = {
     const rootChannelId = "1248622632182480991";
     const newChannel = newState.channelId;
     const oldChannel = oldState.channelId;
-    console.log(
-      "********************************* aActiveChannels ",
-      aActiveChannels
-    );
     if (newChannel != oldChannel) {
       if (newChannel == rootChannelId) {
+        if(!newState.guild.aActiveChannels){
+          newState.guild.aActiveChannels = []
+        }
         // Users entered 1248622632182480991 - Create A Party 🔊
         try {
           console.log("***** create New Channel");
@@ -65,8 +64,8 @@ module.exports = {
             users: [],
             master: newState.id,
           };
-          aActiveChannels.push(currentChanel);
-          console.log("***** aActiveChannels ", aActiveChannels);
+          newState.guild.aActiveChannels.push(currentChanel);
+          console.log("***** aActiveChannels ", newState.guild.aActiveChannels);
         } catch (error) {
           console.log(
             `Error in privateVoiceChannelCreation event Handler\n ${error}`
@@ -75,48 +74,54 @@ module.exports = {
       }
 
       //add user if join to voice
-      var index = aActiveChannels.findIndex(
-        (chanel) => chanel.id === newChannel
-      );
-      console.log("***** index new Channel :", index);
-      if (index !== -1) {
-        aActiveChannels[index].users.push(newState.id);
-        console.log("***** aActiveChannels ", aActiveChannels);
-      }
-      //remove user if left voice
-      var index = aActiveChannels.findIndex(
-        (chanel) => chanel.id === oldChannel
-      );
-      console.log("***** index old Channel :", index);
-      if (index !== -1) {
-        var userIndex = aActiveChannels[index].users.findIndex(
-          (user) => user === oldState.id
+      if(newState){
+        var index = newState.guild.aActiveChannels.findIndex(
+          (chanel) => chanel.id === newChannel
         );
-        if (userIndex !== -1) {
-          aActiveChannels[index].users.splice(userIndex, 1); //remove
-          if (aActiveChannels[index].users.length <= 0) {
-            oldState.guild.channels
-              .delete(oldChannel, "making room for new channels")
-              .then(console.log)
-              .catch(console.error);
-            aActiveChannels.splice(index, 1);
-            console.log("***** aActiveChannels ", aActiveChannels);
-            return;
-          }
-          if (oldState.id == aActiveChannels[index].master) {
-            aActiveChannels[index].master = aActiveChannels[index].users[0];
-            let memberscollection = oldState.channel.members
-            memberscollection.forEach((member)=>{
-              if(member.id == aActiveChannels[index].master){
-                const newName = getActivityName(member)
-                oldState.channel.edit({name:newName})
-              }
-            })
-            console.log("***** aActiveChannels ", aActiveChannels);
-            //set new master
+        console.log("***** index new Channel :", index);
+        if (index !== -1) {
+          newState.guild.aActiveChannels[index].users.push(newState.id);
+          console.log("***** aActiveChannels ", newState.guild.aActiveChannels);
+        }
+      }
+      
+      //remove user if left voice
+      if(oldState){
+        var index = oldState.guild.aActiveChannels.findIndex(
+          (chanel) => chanel.id === oldChannel
+        );
+        console.log("***** index old Channel :", index);
+        if (index !== -1) {
+          var userIndex = oldState.guild.aActiveChannels[index].users.findIndex(
+            (user) => user === oldState.id
+          );
+          if (userIndex !== -1) {
+            oldState.guild.aActiveChannels[index].users.splice(userIndex, 1); //remove
+            if (oldState.guild.aActiveChannels[index].users.length <= 0) {
+              oldState.guild.channels
+                .delete(oldChannel, "making room for new channels")
+                .then(console.log)
+                .catch(console.error);
+                oldState.guild.aActiveChannels.splice(index, 1);
+              console.log("***** aActiveChannels ", oldState.guild.aActiveChannels);
+              return;
+            }
+            if (oldState.id == oldState.guild.aActiveChannels[index].master) {
+              oldState.guild.aActiveChannels[index].master = oldState.guild.aActiveChannels[index].users[0];
+              let memberscollection = oldState.channel.members
+              memberscollection.forEach((member)=>{
+                if(member.id == oldState.guild.aActiveChannels[index].master){
+                  const newName = getActivityName(member)
+                  oldState.channel.edit({name:newName})
+                }
+              })
+              console.log("***** aActiveChannels ", oldState.guild.aActiveChannels);
+              //set new master
+            }
           }
         }
       }
+      
     }
 
     // console.log(
