@@ -109,12 +109,14 @@ module.exports = {
             if (oldState.id == oldState.guild.aActiveChannels[index].master) {
               oldState.guild.aActiveChannels[index].master = oldState.guild.aActiveChannels[index].users[0];
               let memberscollection = oldState.channel.members
-              memberscollection.forEach((member)=>{
-                if(member.id == oldState.guild.aActiveChannels[index].master){
-                  const newName = getActivityName(member)
-                  oldState.channel.edit({name:newName})
-                }
-              })
+              let member = memberscollection.get(oldState.guild.aActiveChannels[index].master)
+              // memberscollection.forEach((member)=>{
+                // if(member.id == oldState.guild.aActiveChannels[index].master){
+              if(member){
+                const newName = getActivityName(member)
+                oldState.channel.edit({name:newName})
+              }
+              // })
               console.log("***** aActiveChannels ", oldState.guild.aActiveChannels);
               //set new master
             }
