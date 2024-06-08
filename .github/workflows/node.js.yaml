@@ -1,0 +1,4 @@
+# A workflow for feature deploy template
+# Should tests come in handy, or a deployment of the service
+
+name: Node.js CI
