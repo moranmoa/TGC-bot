@@ -15,12 +15,8 @@ module.exports = {
 
     console.log(`User = ${uName}`);
 
+    //What if a user switches from one game to another? logically it should remove him from one activity, thus the length will -- and once joining a new activity it will ++
     if (!oldPresence.activities.length == newPresence.activities.length) {
     }
-
-    // user joined the Root channel to create a mew voice one,
-    // we need to create the user a new channel, move that user to the channel
-
-    // later on with database we should check if the user left the channel he created so we can delete it.
   },
 };
