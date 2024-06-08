@@ -11,6 +11,32 @@ var aActiveChannels = [];
 //   master:moaID
 // }]
 
+function getActivityName(User) {
+  let activityName;
+  let customStatusName;
+  try {
+    let activities = User.presence.activities;
+    if (activities && activities.length) {
+      activities.forEach((activity) => {
+        switch (activity.type) {
+          case 0: //'Hang Status'
+            activityName = activity.name;
+            break;
+          case 4: //status
+            customStatusName = activity.state;
+            break;
+          case 6: //'Hang Status'
+            break;
+        }
+      });
+    }
+  } catch (e) {}
+  activityName = activityName ? activityName : customStatusName; //if name or status
+  activityName = activityName ? activityName : User.user.globalName; //else username
+
+  return activityName;
+}
+
 module.exports = {
   name: Events.VoiceStateUpdate,
   async execute(oldState, newState, client) {
@@ -26,38 +52,7 @@ module.exports = {
         // Users entered 1248622632182480991 - Create A Party 🔊
         try {
           console.log("***** create New Channel");
-          let activityName;
-          let customStatusName;
-          try {
-            let activities = newState.member.presence.activities;
-            if (activities && activities.length) {
-              activities.forEach((activity) => {
-                switch (activity.type) {
-                  case 0: //'Hang Status'
-                    activityName = activity.name;
-                    break;
-                  case 4: //status
-                    customStatusName = activity.state;
-                    break;
-                  case 6: //'Hang Status'
-                    break;
-                }
-              });
-            }
-          } catch (e) {}
-          activityName = activityName ? activityName : customStatusName; //if name or status
-          activityName = activityName
-            ? activityName
-            : newState.member.user.globalName; //else username
-          const name = activityName;
-          // try{activityName = newState.member.presence.activities[1].name}
-          // catch(e){
-          //   activityName = newState.member.presence.activities.find(activity => activity.type === 'CUSTOM_STATUS');
-          //   if(!activityName){
-          //     activityName = newState.member.user.globalName
-          //   }
-
-          // }
+          const name = getActivityName(newState.member);
           const genNewChannel = await newState.guild.channels.create({
             name: name,
             type: ChannelType.GuildVoice,
@@ -110,6 +105,13 @@ module.exports = {
           }
           if (oldState.id == aActiveChannels[index].master) {
             aActiveChannels[index].master = aActiveChannels[index].users[0];
+            let memberscollection = oldState.channel.members
+            memberscollection.forEach((member)=>{
+              if(member.id == aActiveChannels[index].master){
+                const newName = getActivityName(member)
+                oldState.channel.edit({name:newName})
+              }
+            })
             console.log("***** aActiveChannels ", aActiveChannels);
             //set new master
           }
