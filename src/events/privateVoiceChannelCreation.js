@@ -24,24 +24,40 @@ module.exports = {
         try {
           console.log("***** create New Channel")
           let activitiename
-          let activities = newState.member.presence?.activities
-          if(activities && activities.length){
-            //לרוץ עליהם 
-            //'Hang Status' להתעלם
-            //CUSTOM_STATUS 
-            //אחר אומר משחק
-            //אם אין משחק תקח CUSTOM_STATUS אחרת את השם של המשתמש
-          }
-          try{activitiename = newState.member.presence?.activities[1].name}
-          catch(e){
-            activitiename = newState.member.presence?.activities.find(activity => activity.type === 'CUSTOM_STATUS');
-            if(!activitiename){
-              activitiename = newState.member.user.globalName
+          let customStatusName
+          try{
+            let activities = newState.member.presence.activities
+            if(activities && activities.length){
+              activities.forEach(activity => {
+                switch(activity.type){
+                  case 0://'Hang Status'
+                  activitiename= activity.name
+                  break
+                  case 4://status
+                    customStatusName = activity.state
+                  break
+                  case 6://'Hang Status'
+                  break
+                }
+              });
             }
-            
           }
+          catch(e){
+
+          }
+          activitiename = activitiename? activitiename:customStatusName; //if name or status
+          activitiename = activitiename? activitiename:newState.member.user.globalName; //else username
+          const name = activitiename
+          // try{activitiename = newState.member.presence.activities[1].name}
+          // catch(e){
+          //   activitiename = newState.member.presence.activities.find(activity => activity.type === 'CUSTOM_STATUS');
+          //   if(!activitiename){
+          //     activitiename = newState.member.user.globalName
+          //   }
+            
+          // }
           const genNewChannel = await newState.guild.channels.create({
-            name: activitiename,
+            name: name,
             type: ChannelType.GuildVoice,
             parent: newState.channel.parent,
           });
