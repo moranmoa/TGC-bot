@@ -88,19 +88,19 @@ for (const file of eventFiles) {
 //   console.log(message);
 // });
 
-client.on("presenceUpdate", (a, b) => {
-  // Combines with voiceStateUpdate, should check if the user is the "admin" of the current Voice chat, if so and his activity was changed, update the Channel
+// client.on("presenceUpdate", (a, b) => {
+//   // Combines with voiceStateUpdate, should check if the user is the "admin" of the current Voice chat, if so and his activity was changed, update the Channel
 
-  try {
-    if (a.user.bot || a.user === "null") return;
-    const uname = a.user.globalName;
-    // console.log(uname);
-    if (uname === "MoA") console.log(b);
-    // console.log(a,b)
-  } catch (err) {
-    console.log(err);
-  }
-});
+//   try {
+//     if (a.user.bot || a.user === "null") return;
+//     const uname = a.user.globalName;
+//     // console.log(uname);
+//     if (uname === "MoA") console.log(b);
+//     // console.log(a,b)
+//   } catch (err) {
+//     console.log(err);
+//   }
+// });
 
 client.on("voiceStateUpdate", (a, b) => {
   try {
