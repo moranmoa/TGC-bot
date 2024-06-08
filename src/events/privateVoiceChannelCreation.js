@@ -23,8 +23,13 @@ module.exports = {
         // Users entered 1248622632182480991 - Create A Party 🔊
         try {
           console.log("***** create New Channel")
+          let activitiename
+          try{activitiename = newState.member.presence.activities[1].name}
+          catch(e){
+            activitiename = newState.member.user.globalName
+          }
           const genNewChannel = await newState.guild.channels.create({
-            name: "test-channel",
+            name: activitiename,
             type: ChannelType.GuildVoice,
             parent: newState.channel.parent,
           });
