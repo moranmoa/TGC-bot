@@ -16,7 +16,12 @@ module.exports = {
     console.log(`User = ${uName}`);
 
     //What if a user switches from one game to another? logically it should remove him from one activity, thus the length will -- and once joining a new activity it will ++
-    if (!oldPresence.activities.length == newPresence.activities.length) {
+    try{
+      if (!oldPresence.activities.length == newPresence.activities.length) {
+          }
+    }catch(e){
+
     }
+    
   },
 };
