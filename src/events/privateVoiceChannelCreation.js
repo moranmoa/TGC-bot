@@ -24,9 +24,21 @@ module.exports = {
         try {
           console.log("***** create New Channel")
           let activitiename
-          try{activitiename = newState.member.presence.activities[1].name}
+          let activities = newState.member.presence?.activities
+          if(activities && activities.length){
+            //לרוץ עליהם 
+            //'Hang Status' להתעלם
+            //CUSTOM_STATUS 
+            //אחר אומר משחק
+            //אם אין משחק תקח CUSTOM_STATUS אחרת את השם של המשתמש
+          }
+          try{activitiename = newState.member.presence?.activities[1].name}
           catch(e){
-            activitiename = newState.member.user.globalName
+            activitiename = newState.member.presence?.activities.find(activity => activity.type === 'CUSTOM_STATUS');
+            if(!activitiename){
+              activitiename = newState.member.user.globalName
+            }
+            
           }
           const genNewChannel = await newState.guild.channels.create({
             name: activitiename,
@@ -41,7 +53,6 @@ module.exports = {
           }
           aActiveChanels.push(currentChanel)
           console.log("***** aActiveChanels ",aActiveChanels)
-          return
 
         } catch (error) {
           console.log(
