@@ -40,11 +40,11 @@ function getActivityName(User) {
 module.exports = {
   name: Events.VoiceStateUpdate,
   async execute(oldState, newState, client) {
-    const rootChannelId = "1248622632182480991";
+    const rootChannelId = ["1248622632182480991","1012355807209332820"];
     const newChannel = newState.channelId;
     const oldChannel = oldState.channelId;
     if (newChannel != oldChannel) {
-      if (newChannel == rootChannelId) {
+      if (rootChannelId.includes(newChannel)) {
         if(!newState.guild.aActiveChannels){
           newState.guild.aActiveChannels = []
         }
