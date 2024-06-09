@@ -7,6 +7,7 @@ function getActivityName(User) {
     let activities = User.presence.activities;
     if (activities && activities.length) {
       activities.forEach((activity) => {
+        console.log("********** activity ",activity.name," ",activity.state," ",activity.type)
         switch (activity.type) {
           case 0: //'Hang Status'
             activityName = activity.name;
@@ -31,18 +32,18 @@ module.exports = {
   async execute(oldPresence, newPresence) {
     // console.log(`In presenceUpdate event handler`);
     let aActiveChannels
-    if (newPresence){
+    if (newPresence && newPresence.guild && newPresence.guild.aActiveChannels){
       aActiveChannels = newPresence.guild.aActiveChannels
-      if(aActiveChannels){
-        aActiveChannels.forEach(Channel => {
-          if(Channel.master == newPresence.userId){
-            const newName = getActivityName(newPresence.member)
-            console.log("********** voice changing name to ",newName)
-            const channel = newPresence.guild.channels.cache.get(Channel.id)
-            channel.edit({name:newName})
-          }
-        });
-      }
+      // if(aActiveChannels){
+      aActiveChannels.forEach(Channel => {
+        if(Channel.master == newPresence.userId){
+          const newName = getActivityName(newPresence.member)
+          console.log("********** voice changing name to ",newName)
+          const channel = newPresence.guild.channels.cache.get(Channel.id)
+          channel.edit({name:newName})
+        }
+      });
+      // }
     }
     // let uName;
 

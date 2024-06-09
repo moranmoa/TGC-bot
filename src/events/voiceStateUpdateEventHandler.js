@@ -43,11 +43,14 @@ module.exports = {
     const rootChannelId = ["1248622632182480991","1012355807209332820"];
     const newChannel = newState.channelId;
     const oldChannel = oldState.channelId;
+    if (newState&& newState.guild){
+      if(!newState.guild.aActiveChannels){
+        newState.guild.aActiveChannels = []
+      }
+    }
     if (newChannel != oldChannel) {
       if (rootChannelId.includes(newChannel)) {
-        if(!newState.guild.aActiveChannels){
-          newState.guild.aActiveChannels = []
-        }
+        
         // Users entered 1248622632182480991 - Create A Party 🔊
         try {
           console.log("***** create New Channel");
@@ -74,7 +77,7 @@ module.exports = {
       }
 
       //add user if join to voice
-      if(newState){
+      if(newState && newState.guild && newState.guild.aActiveChannels){
         var index = newState.guild.aActiveChannels.findIndex(
           (chanel) => chanel.id === newChannel
         );
