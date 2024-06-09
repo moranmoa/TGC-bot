@@ -38,9 +38,12 @@ module.exports = {
       aActiveChannels.forEach(Channel => {
         if(Channel.master == newPresence.userId){
           const newName = getActivityName(newPresence.member)
-          console.log("********** voice changing name to ",newName)
           const channel = newPresence.guild.channels.cache.get(Channel.id)
-          channel.edit({name:newName})
+          if(newName!= channel.name){
+            console.log("********** voice changing name to ",newName)
+            channel.edit({name:newName})
+          }
+          
         }
       });
       // }
