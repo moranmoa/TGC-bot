@@ -16,6 +16,7 @@ module.exports = {
       });
     });
     console.log("*******  Guilds List : ",activeGuilds);
+    setGuildData("guilds", activeGuilds);
     //TODO remove data_guildId file if the guild is not listed
   },
 };
@@ -46,5 +47,5 @@ async function resetEmptyChannels(guild) {
   });
 
   // Save the updated guildData if needed
-  await setGuildData(guild.id, guildData);
+  setGuildData(guild.id, guildData);
 }
