@@ -1,6 +1,6 @@
 const { Events, ChannelType, VoiceChannel } = require("discord.js");
 const path = require("node:path");
-const { getActivityName } = require('./activityUtils');
+const { getActivityName ,whatName} = require('./activityUtils');
 // var aActiveChannels = [];
 // aActiveChannels [
 //   {id:"001",
@@ -95,7 +95,7 @@ module.exports = {
                 // if(member.id == oldState.guild.aActiveChannels[index].master){
               if(member){
                 const newName = getActivityName(member)
-                if(oldState.guild.aActiveChannels[index].name.type >= newName.type && oldState.guild.aActiveChannels[index].name.name != newName.name){
+                if(whatName(oldState.guild.aActiveChannels[index].name,newName)){
                   oldState.guild.aActiveChannels[index].name=newName
                   oldState.channel.edit({name:newName.name})
                 }
@@ -107,7 +107,6 @@ module.exports = {
           }
         }
       }
-      
     }
   },
 };

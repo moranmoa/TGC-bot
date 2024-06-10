@@ -1,5 +1,5 @@
 const { Events } = require("discord.js");
-const { getActivityName } = require('./activityUtils');
+const { getActivityName,whatName } = require('./activityUtils');
 
 module.exports = {
   name: Events.PresenceUpdate,
@@ -13,7 +13,7 @@ module.exports = {
         if(ActiveChannel.master == newPresence.userId){
           const newName = getActivityName(newPresence.member)
           const voceChannel = newPresence.guild.channels.cache.get(ActiveChannel.id)
-          if(ActiveChannel.name.type >= newName.type && ActiveChannel.name.name != newName.name){
+          if(whatName(ActiveChannel.name,newName)){
             console.log("********** voice changing name to ",newName.name)
             ActiveChannel.name=newName
             voceChannel.edit({name:newName.name}).then((voceChannel) =>

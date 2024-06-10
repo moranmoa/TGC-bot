@@ -29,4 +29,17 @@ function getActivityName(User) {
     return activityName;
   }
 
-  module.exports = {getActivityName };
+  function whatName(currentActivityName,newActivityName){
+    if(currentActivityName.name == newActivityName.name){
+        return false
+    }
+    if(newActivityName.type==0 || currentActivityName.type!=0){
+        return true
+    }else{
+        return false
+    }
+        
+  }
+
+
+  module.exports = {getActivityName ,whatName};
