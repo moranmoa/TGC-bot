@@ -2,29 +2,25 @@ const { Events } = require("discord.js");
 const {getGuildData ,setGuildData} = require('./activityUtils');
 
 var activeGuilds = [];
-var activeGuildsIds = [];
 
 module.exports = {
   name: Events.ClientReady,
   once: true,
   execute(client) {
     console.log(`Ready! Logged in as ${client.user.tag}`);
-    client.guilds.cache.forEach((element) => {
-      resetEmptyChannels(element)
-      let tempGuildName = element.name;
-      let tempGuildId = element.id;
-      if (!activeGuilds.includes(tempGuildName)) {
-        console.log(`guild not in list, adding... ${tempGuildName}`);
-        activeGuilds.push(tempGuildName);
-        activeGuildsIds.push(tempGuildId);
-      }
+    client.guilds.cache.forEach((guild) => {
+      resetEmptyChannels(guild)//remove stuck chanels
+      activeGuilds.push({
+        "id": guild.id,
+        "name": guild.name
+      });
     });
-    console.log(`*******  Guilds List [Names]: ${activeGuilds}`);
-    console.log(`*******  Guilds List [Ids]: ${activeGuilds}`);
+    console.log("*******  Guilds List : ",activeGuilds);
+    //TODO remove data_guildId file if the guild is not listed
   },
 };
 
-//remove stuch chanels
+
 async function resetEmptyChannels(guild) {
   var guildData = await getGuildData(guild.id);
 
