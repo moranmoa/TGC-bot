@@ -46,7 +46,10 @@ module.exports = {
           if(ActiveChannel.name.type >= newName.type && ActiveChannel.name.name != newName.name){
             console.log("********** voice changing name to ",newName.name)
             ActiveChannel.name=newName
-            voceChannel.edit({name:newName.name})
+            voceChannel.edit({name:newName.name}).then((voceChannel) =>
+              console.log("********** voceChannel name is ",voceChannel.name)
+            )
+            .catch(console.error);
           }
           
         }
