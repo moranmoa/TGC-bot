@@ -18,12 +18,17 @@ function getActivityName(User) {
     let activities = User.presence.activities;
     if (activities && activities.length) {
       activities.forEach((activity) => {
+        console.log("********** activity ",activity.name," ",activity.state," ",activity.type)
         switch (activity.type) {
           case 0: //'Hang Status'
-            activityName = activity.name;
+            activityName = {"name": activity.name,
+              "type":activity.type
+            };
             break;
           case 4: //status
-            customStatusName = activity.state;
+            customStatusName = {"name": activity.state,
+              "type":activity.type
+            };
             break;
           case 6: //'Hang Status'
             break;
@@ -32,7 +37,7 @@ function getActivityName(User) {
     }
   } catch (e) {}
   activityName = activityName ? activityName : customStatusName; //if name or status
-  activityName = activityName ? activityName : User.user.globalName; //else username
+  activityName = activityName ? activityName : {"name": User.user.globalName,"type":6}; //else username
 
   return activityName;
 }
@@ -56,7 +61,7 @@ module.exports = {
           console.log("***** create New Channel");
           const name = getActivityName(newState.member);
           const genNewChannel = await newState.guild.channels.create({
-            name: name,
+            name: name.name,
             type: ChannelType.GuildVoice,
             parent: newState.channel.parent,
           });
@@ -66,6 +71,7 @@ module.exports = {
             id: genNewChannel.id,
             users: [],
             master: newState.id,
+            name:name
           };
           newState.guild.aActiveChannels.push(currentChanel);
           console.log("***** aActiveChannels ", newState.guild.aActiveChannels);
@@ -117,7 +123,10 @@ module.exports = {
                 // if(member.id == oldState.guild.aActiveChannels[index].master){
               if(member){
                 const newName = getActivityName(member)
-                oldState.channel.edit({name:newName})
+                if(oldState.guild.aActiveChannels[index].name.type >= newName.type && oldState.guild.aActiveChannels[index].name.name != newName.name){
+                  oldState.guild.aActiveChannels[index].name=newName
+                  oldState.channel.edit({name:newName.name})
+                }
               }
               // })
               console.log("***** aActiveChannels ", oldState.guild.aActiveChannels);

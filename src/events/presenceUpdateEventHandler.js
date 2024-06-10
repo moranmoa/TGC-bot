@@ -10,10 +10,14 @@ function getActivityName(User) {
         console.log("********** activity ",activity.name," ",activity.state," ",activity.type)
         switch (activity.type) {
           case 0: //'Hang Status'
-            activityName = activity.name;
+            activityName = {"name": activity.name,
+              "type":activity.type
+            };
             break;
           case 4: //status
-            customStatusName = activity.state;
+            customStatusName = {"name": activity.state,
+              "type":activity.type
+            };
             break;
           case 6: //'Hang Status'
             break;
@@ -22,7 +26,7 @@ function getActivityName(User) {
     }
   } catch (e) {}
   activityName = activityName ? activityName : customStatusName; //if name or status
-  activityName = activityName ? activityName : User.user.globalName; //else username
+  activityName = activityName ? activityName : {"name": User.user.globalName,"type":6}; //else username
 
   return activityName;
 }
@@ -35,13 +39,14 @@ module.exports = {
     if (newPresence && newPresence.guild && newPresence.guild.aActiveChannels){
       aActiveChannels = newPresence.guild.aActiveChannels
       // if(aActiveChannels){
-      aActiveChannels.forEach(Channel => {
-        if(Channel.master == newPresence.userId){
+      aActiveChannels.forEach(ActiveChannel => {
+        if(ActiveChannel.master == newPresence.userId){
           const newName = getActivityName(newPresence.member)
-          const channel = newPresence.guild.channels.cache.get(Channel.id)
-          if(newName!= channel.name){
-            console.log("********** voice changing name to ",newName)
-            channel.edit({name:newName})
+          const voceChannel = newPresence.guild.channels.cache.get(ActiveChannel.id)
+          if(ActiveChannel.name.type >= newName.type && ActiveChannel.name.name != newName.name){
+            console.log("********** voice changing name to ",newName.name)
+            ActiveChannel.name=newName
+            voceChannel.edit({name:newName.name})
           }
           
         }
