@@ -1,35 +1,5 @@
 const { Events } = require("discord.js");
-
-function getActivityName(User) {
-  let activityName;
-  let customStatusName;
-  try {
-    let activities = User.presence.activities;
-    if (activities && activities.length) {
-      activities.forEach((activity) => {
-        console.log("********** activity ",activity.name," ",activity.state," ",activity.type)
-        switch (activity.type) {
-          case 0: //'Hang Status'
-            activityName = {"name": '\u{1F3AE}' +activity.name,
-              "type":activity.type
-            };
-            break;
-          case 4: //status
-            customStatusName = {"name": '\u{1F4AC}'+activity.state,
-              "type":activity.type
-            };
-            break;
-          case 6: //'Hang Status'
-            break;//U+1F464
-        }
-      });
-    }
-  } catch (e) {}
-  activityName = activityName ? activityName : customStatusName; //if name or status
-  activityName = activityName ? activityName : {"name": '\u{1F464}'+User.user.globalName,"type":6}; //else username
-
-  return activityName;
-}
+const { getActivityName } = require('./activityUtils');
 
 module.exports = {
   name: Events.PresenceUpdate,
@@ -54,26 +24,7 @@ module.exports = {
           
         }
       });
-      // }
     }
-    // let uName;
-
-    //Get username, the try catch here is to handle, login, logout activities which have null usernames
-    // try {
-    //   uName = oldPresence.user.globalName;
-    // } catch (e) {
-    //   uName = newPresence.user.globalName;
-    // }
-
-    // console.log(`User = ${uName}`);
-
-    //What if a user switches from one game to another? logically it should remove him from one activity, thus the length will -- and once joining a new activity it will ++
-    // try{
-    //   if (!oldPresence.activities.length == newPresence.activities.length) {
-    //       }
-    // }catch(e){
-
-    // }
     
   },
 };
