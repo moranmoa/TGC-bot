@@ -1,6 +1,6 @@
 const { Events, ChannelType, VoiceChannel } = require("discord.js");
 const path = require("node:path");
-const { getActivityName ,whatName} = require('./activityUtils');
+const { getActivityName ,whatName ,getGuildData ,setGuildData} = require('./activityUtils');
 // var aActiveChannels = [];
 // aActiveChannels [
 //   {id:"001",
@@ -17,16 +17,20 @@ const { getActivityName ,whatName} = require('./activityUtils');
 module.exports = {
   name: Events.VoiceStateUpdate,
   async execute(oldState, newState, client) {
-    const rootChannelId = ["1248622632182480991","1012355807209332820"];
+    const guild = oldState?.guild ?? newState?.guild;
+    var guildData = await getGuildData(guild.id);
+    // guildData.rootChannelId = ["1012355807209332820"]
+    // await setGuildData(guild.id, guildData)
+    // const rootChannelId = ["1248622632182480991","1012355807209332820"];
     const newChannel = newState.channelId;
     const oldChannel = oldState.channelId;
-    if (newState&& newState.guild){
-      if(!newState.guild.aActiveChannels){
-        newState.guild.aActiveChannels = []
-      }
+    // if (newState&& newState.guild){
+    if(!guildData.aActiveChannels){
+      guildData.aActiveChannels = []
     }
+    // }
     if (newChannel != oldChannel) {
-      if (rootChannelId.includes(newChannel)) {
+      if (guildData.rootChannelId.includes(newChannel)) {
         
         // Users entered 1248622632182480991 - Create A Party 🔊
         try {
@@ -45,8 +49,9 @@ module.exports = {
             master: newState.id,
             name:name
           };
-          newState.guild.aActiveChannels.push(currentChanel);
-          console.log("***** aActiveChannels ", newState.guild.aActiveChannels);
+          guildData.aActiveChannels.push(currentChanel);
+          await setGuildData(guild.id, guildData)
+          console.log("***** aActiveChannels ", guildData.aActiveChannels);
         } catch (error) {
           console.log(
             `Error in privateVoiceChannelCreation event Handler\n ${error}`
@@ -55,54 +60,54 @@ module.exports = {
       }
 
       //add user if join to voice
-      if(newState && newState.guild && newState.guild.aActiveChannels){
-        var index = newState.guild.aActiveChannels.findIndex(
+      if(newState && newState.guild && guildData.aActiveChannels){
+        var index = guildData.aActiveChannels.findIndex(
           (chanel) => chanel.id === newChannel
         );
         console.log("***** index new Channel :", index);
         if (index !== -1) {
-          newState.guild.aActiveChannels[index].users.push(newState.id);
-          console.log("***** aActiveChannels ", newState.guild.aActiveChannels);
+          guildData.aActiveChannels[index].users.push(newState.id);
+          await setGuildData(guild.id, guildData)
+          console.log("***** aActiveChannels ", guildData.aActiveChannels);
         }
       }
       
       //remove user if left voice
       if(oldState){
-        var index = oldState.guild.aActiveChannels.findIndex(
+        var index = guildData.aActiveChannels.findIndex(
           (chanel) => chanel.id === oldChannel
         );
         console.log("***** index old Channel :", index);
         if (index !== -1) {
-          var userIndex = oldState.guild.aActiveChannels[index].users.findIndex(
+          var userIndex = guildData.aActiveChannels[index].users.findIndex(
             (user) => user === oldState.id
           );
           if (userIndex !== -1) {
-            oldState.guild.aActiveChannels[index].users.splice(userIndex, 1); //remove
-            if (oldState.guild.aActiveChannels[index].users.length <= 0) {
+            guildData.aActiveChannels[index].users.splice(userIndex, 1); //remove
+            await setGuildData(guild.id, guildData)
+            if (guildData.aActiveChannels[index].users.length <= 0) {
               oldState.guild.channels
                 .delete(oldChannel, "making room for new channels")
                 .then(console.log)
                 .catch(console.error);
-                oldState.guild.aActiveChannels.splice(index, 1);
-              console.log("***** aActiveChannels ", oldState.guild.aActiveChannels);
+                guildData.aActiveChannels.splice(index, 1);
+                await setGuildData(guild.id, guildData)
+              console.log("***** aActiveChannels ", guildData.aActiveChannels);
               return;
             }
-            if (oldState.id == oldState.guild.aActiveChannels[index].master) {
-              oldState.guild.aActiveChannels[index].master = oldState.guild.aActiveChannels[index].users[0];
+            if (oldState.id == guildData.aActiveChannels[index].master) {
+              guildData.aActiveChannels[index].master = guildData.aActiveChannels[index].users[0];
               let memberscollection = oldState.channel.members
-              let member = memberscollection.get(oldState.guild.aActiveChannels[index].master)
-              // memberscollection.forEach((member)=>{
-                // if(member.id == oldState.guild.aActiveChannels[index].master){
+              let member = memberscollection.get(guildData.aActiveChannels[index].master)
               if(member){
                 const newName = getActivityName(member)
-                if(whatName(oldState.guild.aActiveChannels[index].name,newName)){
-                  oldState.guild.aActiveChannels[index].name=newName
+                if(whatName(guildData.aActiveChannels[index].name,newName)){
+                  guildData.aActiveChannels[index].name=newName
                   oldState.channel.edit({name:newName.name})
                 }
               }
-              // })
-              console.log("***** aActiveChannels ", oldState.guild.aActiveChannels);
-              //set new master
+              await setGuildData(guild.id, guildData)
+              console.log("***** aActiveChannels ", guildData.aActiveChannels);
             }
           }
         }

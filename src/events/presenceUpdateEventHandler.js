@@ -1,13 +1,19 @@
 const { Events } = require("discord.js");
-const { getActivityName,whatName } = require('./activityUtils');
+const { getActivityName,whatName ,getGuildData,setGuildData} = require('./activityUtils');
 
 module.exports = {
   name: Events.PresenceUpdate,
   async execute(oldPresence, newPresence) {
     // console.log(`In presenceUpdate event handler`);
+    
     let aActiveChannels
-    if (newPresence && newPresence.guild && newPresence.guild.aActiveChannels){
-      aActiveChannels = newPresence.guild.aActiveChannels
+    if (newPresence && newPresence.guild ){
+      const guild = newPresence.guild;
+      var guildData = await getGuildData(guild.id);
+      if(!guildData.aActiveChannels){
+        guildData.aActiveChannels = []
+      }
+      aActiveChannels = guildData.aActiveChannels
       // if(aActiveChannels){
       aActiveChannels.forEach(ActiveChannel => {
         if(ActiveChannel.master == newPresence.userId){
@@ -16,14 +22,17 @@ module.exports = {
           if(whatName(ActiveChannel.name,newName)){
             console.log("********** voice changing name to ",newName.name)
             ActiveChannel.name=newName
+            setGuildData(guild.id, guildData)
             voceChannel.edit({name:newName.name}).then((voceChannel) =>
               console.log("********** voceChannel name is ",voceChannel.name)
             )
             .catch(console.error);
+            
           }
           
         }
       });
+      
     }
     
   },

@@ -1,3 +1,35 @@
+const { Guild } = require('discord.js');
+const path = require('path');
+const fs = require('fs').promises;
+
+const dataDirPath = path.join(__dirname, '..', 'data');
+
+async function getGuildData(guildId) {
+    try {
+        const filePath = path.join(dataDirPath, `data_${guildId}.json`);
+        const jsonString = await fs.readFile(filePath, 'utf8');
+        const data = JSON.parse(jsonString);
+        // console.log("* Guild Data * :",guildId,data)
+        return data;
+    } catch (err) {
+        // console.error('Error reading or parsing file', err);
+        return {"aActiveChannels":[]};
+    }
+}
+async function setGuildData(guildId, data) {
+    // Convert JSON object to string
+    const jsonData = JSON.stringify(data, null, 2);
+
+    try {
+        const filePath = path.join(dataDirPath, `data_${guildId}.json`);
+        // Write JSON string to a file
+        await fs.writeFile(filePath, jsonData);
+        console.log('JSON data written to file successfully');
+    } catch (err) {
+        console.error('Error writing to file', err);
+    }
+}
+
 function getActivityName(User) {
     let activityName;
     let customStatusName;
@@ -38,8 +70,6 @@ function getActivityName(User) {
     }else{
         return false
     }
-        
   }
 
-
-  module.exports = {getActivityName ,whatName};
+  module.exports = {getActivityName ,whatName, getGuildData ,setGuildData};

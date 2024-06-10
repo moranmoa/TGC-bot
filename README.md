@@ -43,6 +43,10 @@ BOT_ID = 124...
 
 ## Utilities
 
+## to start dev
+
+npm run dev 
+
 ###
 
 `deploy-commands.js - fetches all JavaScript files under /commands/utility and published them.`
