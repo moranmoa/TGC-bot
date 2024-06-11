@@ -49,6 +49,6 @@ npm run dev
 
 ###
 
-`deploy-commands.js - fetches all JavaScript files under /commands/utility and published them.`
+`deploy-commands.js - fetches all JavaScript files under /commands/utility and published them. (node .\src\tools\deploy-commands.js)` 
 
 `delete-commands.js - deletes a specific command from the bot! (You should also remove the file and the remove the '/' command from the Apps Integration bot Management Panel)`.
