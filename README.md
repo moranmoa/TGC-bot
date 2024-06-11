@@ -11,7 +11,6 @@
 ```js
 npm install
 npm install -g nodemon
-nodemon
 ```
 
 - Execute (windows):
@@ -29,26 +28,42 @@ step 2.
 ```js
 Open PowerShell with Admin permissions,
 Execute: -Set-ExecutionPolicy RemoteSigned -Scope CurrentUser*
-nodemon
 ```
 
 -\*Set Execution Policy will allow the current User you are logged in as to run nodemon
 
-### dotenv file
+### Dotenv Example
 
-add .env with
+```
 TOKEN = MT......
 GUILD_ID = 23...
 BOT_ID = 124...
+```
 
 ## Utilities
 
 ## to start dev
 
-npm run dev 
+`npm run dev`
 
-###
+### Deployments & Deletion of Commands
 
-`deploy-commands.js - fetches all JavaScript files under /commands/utility and published them. (node .\src\tools\deploy-commands.js)` 
+```js
+src / tools / deploy - commands.js; //fetches all JavaScript files under /commands/utility and published them. (node .\src\tools\deploy-commands.js)
 
-`delete-commands.js - deletes a specific command from the bot! (You should also remove the file and the remove the '/' command from the Apps Integration bot Management Panel)`.
+src / tools / delete -commands.js; //deletes a specific command from the bot! (You should also remove the file and the remove the '/' command from the Apps Integration bot Management Panel)`
+```
+
+### Logger
+
+Utilize log4js, configuration and layouts sits on logger.js file.
+
+Import logger.js to your JS file, add these lines:
+
+```js
+const log4js = require("log4js"); //log4js library
+
+const {} = require("../logger"); - //path to main logger.js (reside in the src folder)
+
+const appLogger = log4js.getLogger("client"); //(logger category) (one of: app | channel | client)
+```
