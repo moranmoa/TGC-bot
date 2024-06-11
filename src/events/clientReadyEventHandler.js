@@ -1,6 +1,7 @@
 const { Events } = require("discord.js");
 const {getGuildData ,setGuildData} = require('./activityUtils');
 
+
 var activeGuilds = [];
 
 module.exports = {
@@ -24,6 +25,14 @@ module.exports = {
 
 async function resetEmptyChannels(guild) {
   var guildData = await getGuildData(guild.id);
+  //filter out deleted rootChannels
+  guildData.rootChannelId = guildData.rootChannelId.filter((rootChannelId)=>{
+    if(guild.channels.cache.get(rootChannelId)){
+      return true
+    }else{
+      return false
+    }
+  })
 
   // Filter out and delete empty channels
   guildData.aActiveChannels = guildData.aActiveChannels.filter((activeChannel) => {
