@@ -9,6 +9,12 @@ const rest = new REST().setToken(process.env.TOKEN);
 const commandId = "";
 
 rest
-  .delete(Routes.applicationGuildCommand())
+  .delete(
+    Routes.applicationGuildCommand(
+      process.env.BOT_ID,
+      process.env.GUILD_ID,
+      commandId
+    )
+  )
   .then(() => console.log("Successfully deleted guild command"))
   .catch(console.error);
