@@ -1,5 +1,5 @@
 const { Events } = require("discord.js");
-const { getActivityName,whatName ,getGuildData,setGuildData} = require('./activityUtils');
+const { getActivityName,whatName ,getGuildData,setGuildData,updateChannelName} = require('./activityUtils');
 
 module.exports = {
   name: Events.PresenceUpdate,
@@ -23,6 +23,7 @@ module.exports = {
             console.log("********** voice changing name to ",newName.name)
             ActiveChannel.name=newName
             setGuildData(guild.id, guildData)
+            // updateChannelName(voceChannel, guildData, newName) crush the app
             voceChannel.edit({name:newName.name}).then((voceChannel) =>
               console.log("********** voceChannel name is ",voceChannel.name)
             )

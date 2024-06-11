@@ -72,4 +72,44 @@ function getActivityName(User) {
     }
   }
 
-  module.exports = {getActivityName ,whatName, getGuildData ,setGuildData};
+  function updateChannelName(voiceChannel, guildData, newName ) {
+    //not tested !!
+    // dont works
+    const channel = guildData.aActiveChannels.find(c => c.id === voiceChannel.id);
+    if (!channel) {
+        return;
+    }
+    const now = Date.now();
+    if (channel.names.fifo.length >= 2) {
+        const timeDiff = now - channel.names.fifo[0].time;
+        const tenMinutes = 10 * 60 * 1000; //10min
+        if (timeDiff < tenMinutes) {
+            const remainingTime = tenMinutes - timeDiff;
+            channel.names.fifo[2] = { name: newName.name, time: now + remainingTime };
+            console.log("--updateChannelName ",channel , newName )
+            if (!channel.names.timeoutId) {
+                channel.names.timeoutId = setTimeout(() => {
+                    console.log("--updateChannelName setTimeout 1",channel , newName )
+                    channel.names.active = { name: channel.names.fifo[2].name, type: fifo[2].type };
+                    channel.names.timeoutId = null;
+                    if (channel.names.fifo.length > 2) {
+                        channel.names.fifo.shift();
+                    }
+                    console.log("--updateChannelName setTimeout 2",channel , newName )
+                }, remainingTime);
+                channel.names.timeoutId = true;
+            }
+        } else {
+            channel.names.active = { name: newName.name, type: newName.type };
+            channel.names.fifo[2] = { name: newName.name, time: now ,type: newName.type};
+            channel.names.fifo.shift();
+            console.log("--updateChannelName ",channel , newName )
+        }
+    } else {
+        channel.names.active = { name: newName.name, type: newName.type };
+        channel.names.fifo.push({ name: newName.name, time: now ,type: newName.type});
+        console.log("--updateChannelName ",channel , newName )
+    }
+}
+
+  module.exports = {getActivityName ,whatName, getGuildData ,setGuildData, updateChannelName};
