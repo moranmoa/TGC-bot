@@ -15,6 +15,6 @@ module.exports = {
         let max = interaction.options.getNumber('max') || 100;
         const randomNumber = Math.floor(Math.random() * (max + 1));
 
-        await interaction.reply(`${randomNumber}`);
+        await interaction.reply(`roll ${max} : ${randomNumber}`);
     },
 };
