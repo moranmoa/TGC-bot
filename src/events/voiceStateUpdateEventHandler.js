@@ -25,9 +25,9 @@ module.exports = {
     const newChannel = newState.channelId;
     const oldChannel = oldState.channelId;
     // if (newState&& newState.guild){
-    if(!guildData.aActiveChannels){
-      guildData.aActiveChannels = []
-    }
+    // if(!guildData.aActiveChannels){
+    //   guildData.aActiveChannels = []
+    // }
     // }
     if (newChannel != oldChannel) {
       if (guildData.rootChannelId.includes(newChannel)) {

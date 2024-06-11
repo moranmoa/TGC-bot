@@ -13,7 +13,7 @@ async function getGuildData(guildId) {
         return data;
     } catch (err) {
         // console.error('Error reading or parsing file', err);
-        return {"aActiveChannels":[]};
+        return {"aActiveChannels":[],"rootChannelId":[]};
     }
 }
 async function setGuildData(guildId, data) {
