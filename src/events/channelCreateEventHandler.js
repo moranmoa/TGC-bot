@@ -1,6 +1,6 @@
 const { Events } = require("discord.js");
-const { sendButtons } = require("../functions/voiceChannelButtons");
-const { getGuildData } = require("./activityUtils");
+// const { sendButtons } = require("../functions/voiceChannelButtons");
+// const { getGuildData } = require("./activityUtils");
 const log4js = require("log4js");
 const {} = require("../logger");
 const appLogger = log4js.getLogger("channel");
