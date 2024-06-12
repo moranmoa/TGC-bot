@@ -8,8 +8,7 @@ const appLogger = log4js.getLogger("channel");
 module.exports = {
   name: Events.ChannelUpdate,
   async execute(channel) {
-    console.log(`Channel Update: ID - ${channel.id}`);
-    appLogger.log("Channel Name Update", {
+    appLogger.log("A Channel was update", {
       iD: channel.id,
       name: channel.name,
     });
