@@ -24,8 +24,12 @@ module.exports = {
             ActiveChannel.name=newName
             setGuildData(guild.id, guildData)
             // updateChannelName(voceChannel, guildData, newName) crush the app
-            voceChannel.edit({name:newName.name}).then((voceChannel) =>
-              console.log("********** voceChannel name is ",voceChannel.name)
+            voceChannel.edit({name:newName.name}).then((voceChannel) =>{
+              if(voceChannel){
+                console.log("********** voceChannel name is ",voceChannel.name)
+              }
+              
+            }
             )
             .catch(console.error);
             
