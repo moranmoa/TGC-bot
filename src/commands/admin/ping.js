@@ -7,6 +7,9 @@ const {
   ActionRowBuilder,
   Component,
 } = require("discord.js");
+const log4js = require("log4js");
+const {} = require("../../logger");
+const appLogger = log4js.getLogger("client");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -14,37 +17,57 @@ module.exports = {
     .setDescription("Checks for a server Roundtrip & Heartbeat")
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .setDMPermission(false),
-  async execute(interaction, client) {
-    const sent = await interaction.deferReply({
-      fetchReply: true,
-      ephemeral: true,
-    });
+  async execute(interaction) {
+    try {
+      const sent = await interaction.deferReply({
+        fetchReply: true,
+        ephemeral: true,
+      });
 
-    let tripCalc = sent.createdTimestamp - interaction.createdTimestamp;
-    const eval = "```" + tripCalc + "ms```";
-    const responseEmbed = new EmbedBuilder()
-      .setTitle("🏓 PONG! 🏓")
-      .setColor("#7289DA")
-      .setTimestamp(Date.now())
-      .addFields([
-        {
-          name: `🔁 Roundtrip Latency 🔁`,
-          value: `${eval}`,
-        },
-      ]);
+      appLogger.info("received a ping command", {
+        guildId: interaction.guild.id,
+        guildName: interaction.guild.name,
+        userId: interaction.member.user.id,
+        userName: interaction.member.user.globalName,
+      });
 
-    const inviteButton = new ButtonBuilder()
-      .setLabel("Invite the bot")
-      .setStyle(ButtonStyle.Link)
-      .setURL(
-        "https://discord.com/oauth2/authorize?client_id=1248310840260690054&permissions=8&integration_type=0&scope=bot+applications.commands"
-      );
+      let roundTripCalculation =
+        sent.createdTimestamp - interaction.createdTimestamp;
+      const evalMessage = "```" + roundTripCalculation + "ms```";
 
-    const buttonRow = new ActionRowBuilder().addComponents(inviteButton);
-    interaction.editReply({
-      embeds: [responseEmbed],
-      components: [buttonRow],
-    });
+      const responseEmbed = new EmbedBuilder()
+        .setTitle("🏓 PONG! 🏓")
+        .setColor("#7289DA")
+        .setTimestamp(Date.now())
+        .addFields([
+          {
+            name: `🔁 Roundtrip Latency 🔁`,
+            value: `${evalMessage}`,
+          },
+        ]);
+
+      const inviteButton = new ButtonBuilder()
+        .setLabel("Invite the bot")
+        .setStyle(ButtonStyle.Link)
+        .setURL(
+          "https://discord.com/oauth2/authorize?client_id=1248310840260690054&permissions=8&integration_type=0&scope=bot+applications.commands"
+        );
+
+      const buttonRow = new ActionRowBuilder().addComponents(inviteButton);
+      interaction.editReply({
+        embeds: [responseEmbed],
+        components: [buttonRow],
+      });
+    } catch (error) {
+      await appLogger.error("failed to send a ping command", {
+        guildId: interaction.guild.id,
+        guildName: interaction.guild.name,
+        userId: interaction.member.user.id,
+        userName: interaction.member.user.globalName,
+        Error: error,
+      });
+      // log4js.shutdown(() => process.exit(1)); // is a callback needed?
+    }
   },
 };
 
