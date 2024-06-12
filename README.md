@@ -1,20 +1,16 @@
 # TGC-ChatBOT
 
-## Setup
-
-### Installation
+## Installation
 
 - Clone the repo
 - Cd into the TGC-bot folder
-- Execute (Unix):
 
+### Unix
 ```js
 npm install
 npm install -g nodemon
 ```
-
-- Execute (windows):
-
+### Windows
 step 1.
 
 ```js
