@@ -42,7 +42,7 @@ BOT_ID = 124...
 
 ## Utilities
 
-## to start dev
+### to start dev
 
 `npm run dev`
 
