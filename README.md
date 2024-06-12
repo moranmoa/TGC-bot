@@ -66,4 +66,6 @@ const log4js = require("log4js"); //log4js library
 const {} = require("../logger"); - //path to main logger.js (reside in the src folder)
 
 const appLogger = log4js.getLogger("client"); //(logger category) (one of: app | channel | client)
+
+appLogger.log("New Channel Created", {iD: channel.id,name: channel.name}); // usage example writes to the logger that a new channel was created with the channel ID and the channel name.
 ```
