@@ -10,8 +10,7 @@ const appLogger = log4js.getLogger("channel");
 module.exports = {
   name: Events.ChannelCreate,
   async execute(channel) {
-    console.log(channel);
-    appLogger.log("New Channel Created", {
+    appLogger.log("A Channel was created", {
       iD: channel.id,
       name: channel.name,
     });
