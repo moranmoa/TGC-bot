@@ -31,9 +31,9 @@ module.exports = {
         userName: interaction.member.user.globalName,
       });
 
-      let roundTripCalculation =
+      let roundtripCalculation =
         sent.createdTimestamp - interaction.createdTimestamp;
-      const evalMessage = "```" + roundTripCalculation + "ms```";
+      const evalMessage = "```" + roundtripCalculation + "ms```";
 
       const responseEmbed = new EmbedBuilder()
         .setTitle("🏓 PONG! 🏓")
