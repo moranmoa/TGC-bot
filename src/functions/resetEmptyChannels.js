@@ -35,7 +35,7 @@ async function resetEmptyChannels(guild) {
   );
 
   // Save the updated guildData if needed
-  setGuildData(guild.id, guildData);
+  await setGuildData(guild.id, guildData);
 }
 
 module.exports = { resetEmptyChannels };

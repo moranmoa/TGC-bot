@@ -1,6 +1,7 @@
 const { Events, ActivityType } = require("discord.js");
 const { setGuildData } = require("./activityUtils");
 const { resetEmptyChannels } = require("../functions/resetEmptyChannels");
+const { activateGoblinEvent } = require("../functions/goblinEvent");
 const log4js = require("log4js");
 const {} = require("../logger");
 const appLogger = log4js.getLogger("client");
@@ -14,6 +15,7 @@ module.exports = {
     // Remove empty Channels from cache.
     client.guilds.cache.forEach((guild) => {
       resetEmptyChannels(guild); //remove stuck chanels
+      activateGoblinEvent(guild);
       activeGuilds.push({
         id: guild.id,
         name: guild.name,
