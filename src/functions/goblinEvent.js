@@ -25,6 +25,7 @@ async function goblinEvent(guild) {
     const randomIndex = Math.floor(Math.random() * guildData.aActiveChannels.length);
     const voiceChannel = guild.channels.cache.get(guildData.aActiveChannels[randomIndex].id);
 
+    // https://convertio.co/mp3-opus/
     let url='../audio/'+ await selectSound("all")
     playInChannel(url,voiceChannel)
 
@@ -44,6 +45,7 @@ async function playInChannel(url, voiceChannel) {
       const player = createAudioPlayer();
   
       // Path to the opus file
+    //   https://convertio.co/mp3-opus/
       const filePath = path.join(__dirname, url);
   
       // Create a read stream for the opus file
