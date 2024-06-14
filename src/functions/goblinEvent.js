@@ -25,50 +25,52 @@ async function goblinEvent(guild) {
     const randomIndex = Math.floor(Math.random() * guildData.aActiveChannels.length);
     const voiceChannel = guild.channels.cache.get(guildData.aActiveChannels[randomIndex].id);
 
-    // Join the voice channel
-    const connection = joinVoiceChannel({
-      channelId: voiceChannel.id,
-      guildId: guild.id,
-      adapterCreator: guild.voiceAdapterCreator,
-    });
-
-    // Create an audio player
-    const player = createAudioPlayer();
-
-    // Path to the opus file
     let url='../audio/'+ await selectSound("all")
+    playInChannel(url,voiceChannel)
 
-    const filePath = path.join(__dirname, url);
-
-    // Create a read stream for the opus file
-    const resource = createAudioResource(createReadStream(filePath), {
-      inputType: StreamType.OggOpus,
-    });
-
-    // Play the audio resource
-    player.play(resource);
-
-    // Subscribe the connection to the audio player (this means the bot will play audio in the voice channel)
-    connection.subscribe(player);
-
-    player.on(AudioPlayerStatus.Playing, () => {
-      console.log('The audio player has started playing!');
-    });
-
-    player.on(AudioPlayerStatus.Idle, () => {
-      console.log('The audio player is now idle!');
-      connection.destroy(); // Leave the voice channel when the audio is finished
-    });
-
-    player.on('error', error => {
-      console.error(`Error: ${error.message}`);
-      connection.destroy();
-    });
-
-    // await interaction.reply(`Playing audio in ${voiceChannel.name}`);
-  
   }
 }
+
+async function playInChannel(url, voiceChannel) {
+    // Join the voice channel
+    let guild = voiceChannel.guild
+    const connection = joinVoiceChannel({
+        channelId: voiceChannel.id,
+        guildId: guild.id,
+        adapterCreator: guild.voiceAdapterCreator,
+      });
+  
+      // Create an audio player
+      const player = createAudioPlayer();
+  
+      // Path to the opus file
+      const filePath = path.join(__dirname, url);
+  
+      // Create a read stream for the opus file
+      const resource = createAudioResource(createReadStream(filePath), {
+        inputType: StreamType.OggOpus,
+      });
+  
+      // Play the audio resource
+      player.play(resource);
+  
+      // Subscribe the connection to the audio player (this means the bot will play audio in the voice channel)
+      connection.subscribe(player);
+  
+      player.on(AudioPlayerStatus.Playing, () => {
+        console.log('The audio player has started playing!');
+      });
+  
+      player.on(AudioPlayerStatus.Idle, () => {
+        console.log('The audio player is now idle!');
+        connection.destroy(); // Leave the voice channel when the audio is finished
+      });
+  
+      player.on('error', error => {
+        console.error(`Error: ${error.message}`);
+        connection.destroy();
+      });
+  }
 
 function getRandomInterval(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
