@@ -21,19 +21,42 @@ async function goblinEvent(guild) {
   );
   if(membersCount>1){
     console.log("goblin Event now")
+    let numberofchannels = (Math.floor(guildData.aActiveChannels.length/2) +1)
 
-    const randomIndex = Math.floor(Math.random() * guildData.aActiveChannels.length);
-    const voiceChannel = guild.channels.cache.get(guildData.aActiveChannels[randomIndex].id);
+    // const randomIndex = Math.floor(Math.random() * guildData.aActiveChannels.length);
+    // const voiceChannel = guild.channels.cache.get(guildData.aActiveChannels[randomIndex].id);
 
-    // https://convertio.co/mp3-opus/
-    let url='../audio/'+ await selectSound("all")
-    playInChannel(url,voiceChannel)
+    // // https://convertio.co/mp3-opus/
+    // let url='../audio/'+ await selectSound("all")
+    // await playInChannel(url,voiceChannel)
+    let usedIndices = new Set();
+
+    for (let i = 0; i < numberofchannels; i++) {
+        setTimeout(async () => {
+            let randomIndex;
+            let count = 0
+            do {
+                count++
+                if(count >10){
+                    return
+                }
+                randomIndex = Math.floor(Math.random() * guildData.aActiveChannels.length);
+            } while (usedIndices.has(randomIndex));
+            
+            usedIndices.add(randomIndex);
+            const voiceChannel = guild.channels.cache.get(guildData.aActiveChannels[randomIndex].id);
+
+            let url = '../audio/' + await selectSound("all");
+            await playInChannel(url, voiceChannel);
+        }, i * 10000); // 10000 milliseconds = 10 seconds
+    }
 
   }
 }
 
 async function playInChannel(url, voiceChannel) {
     // Join the voice channel
+    console.log("goblin Event playInChannel")
     let guild = voiceChannel.guild
     const connection = joinVoiceChannel({
         channelId: voiceChannel.id,
@@ -82,8 +105,8 @@ async function activateGoblinEvent(guild) {
   var guildData = await getGuildData(guild.id);
   if(guildData.GoblinEvent){
     console.log("schedule Goblin Event")
-    const minInterval = 20 * 60 * 1000; // 30 minutes in milliseconds
-    const maxInterval = 3 * 60 * 60 * 1000; // 5 hours in milliseconds
+    const minInterval = 30 * 60 * 1000; // 30 minutes in milliseconds
+    const maxInterval = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
     // const minInterval = 10 * 1 * 1000; // 30 minutes in milliseconds     //5sec - test
     // const maxInterval = 20 * 1 * 1 * 1000; // 5 hours in milliseconds    //10sec -test
     function scheduleGoblinEvent() {
