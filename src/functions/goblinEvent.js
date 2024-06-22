@@ -105,8 +105,8 @@ async function activateGoblinEvent(guild) {
   var guildData = await getGuildData(guild.id);
   if(guildData.GoblinEvent){
     console.log("schedule Goblin Event")
-    const minInterval = 30 * 60 * 1000; // 30 minutes in milliseconds
-    const maxInterval = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
+    const minInterval = 20 * 60 * 1000; // 30 minutes in milliseconds
+    const maxInterval = 4 * 60 * 60 * 1000; // 5 hours in milliseconds
     // const minInterval = 10 * 1 * 1000; // 30 minutes in milliseconds     //5sec - test
     // const maxInterval = 20 * 1 * 1 * 1000; // 5 hours in milliseconds    //10sec -test
     function scheduleGoblinEvent() {

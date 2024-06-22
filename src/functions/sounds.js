@@ -1,7 +1,7 @@
 async function selectSound(flag) {
 
   if(flag=="all"){
-    let random = Math.floor(Math.random() * 8);
+    let random = Math.floor(Math.random() * 9);
     let value= "Treasure-Goblin.opus"
     switch(random){
         case 0:
@@ -11,7 +11,7 @@ async function selectSound(flag) {
         value= "Treasure-Goblin.opus"
         break
         case 2:
-        value= "goblin pack.opus"
+        value= "gay-echo.opus"//"goblin pack.opus"
         break
         case 3:
         value= "Golden Legendary.opus"
@@ -28,9 +28,9 @@ async function selectSound(flag) {
         case 7:
             value= "PornHub.opus"
         break
-        // case 8:
-        //     value= 
-        // break
+        case 8:
+            value= "gay-echo.opus"
+        break
         // case 9:
         //     value= 
         // break
