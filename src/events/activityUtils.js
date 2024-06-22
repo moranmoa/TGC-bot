@@ -39,7 +39,7 @@ function getActivityName(User) {
         activities.forEach((activity) => {
           console.log("********** activity ",activity.name," ",activity.state," ",activity.type)
           switch (activity.type) {
-            case 0: //'Hang Status'
+            case 0: //'Game'
               activityName = {"name": '\u{1F3AE}' +activity.name,
                 "type":activity.type
               };
