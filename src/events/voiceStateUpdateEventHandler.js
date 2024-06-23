@@ -101,7 +101,8 @@ module.exports = {
               let member = memberscollection.get(guildData.aActiveChannels[index].master)
               if(member){
                 const newName = getActivityName(member)
-                if(whatName(guildData.aActiveChannels[index].name,newName)){
+                // if(whatName(guildData.aActiveChannels[index].name,newName)){
+                if(guildData.aActiveChannels[index].name != newName){
                   guildData.aActiveChannels[index].name=newName
                   oldState.channel.edit({name:newName.name})
                 }
