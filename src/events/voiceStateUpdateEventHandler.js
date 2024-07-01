@@ -40,7 +40,7 @@ module.exports = {
           // let array = Array.from(channelscollection);
           // let index = array.findIndex(subArray => subArray[0] === newState.channel.id);
           // const desiredPosition = index + 1;
-          console.log("desiredPosition = ",desiredPosition)
+          // console.log("desiredPosition = ",desiredPosition)
           const genNewChannel = await newState.guild.channels.create({
             name: name.name,
             type: ChannelType.GuildVoice,
