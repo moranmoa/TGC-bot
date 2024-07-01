@@ -35,7 +35,7 @@ module.exports = {
         // Users entered 1248622632182480991 - Create A Party 🔊
         try {
           console.log("***** create New Channel");
-          const name = getActivityName(newState.member);
+          let name = getActivityName(newState.member);
           // let channelscollection = newState.channel.parent.children.cache
           // let array = Array.from(channelscollection);
           // let index = array.findIndex(subArray => subArray[0] === newState.channel.id);
