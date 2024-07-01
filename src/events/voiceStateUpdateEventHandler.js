@@ -36,16 +36,16 @@ module.exports = {
         try {
           console.log("***** create New Channel");
           const name = getActivityName(newState.member);
-          let channelscollection = newState.channel.parent.children.cache
-          let array = Array.from(channelscollection);
-          let index = array.findIndex(subArray => subArray[0] === newState.channel.id);
-          const desiredPosition = index + 1;
+          // let channelscollection = newState.channel.parent.children.cache
+          // let array = Array.from(channelscollection);
+          // let index = array.findIndex(subArray => subArray[0] === newState.channel.id);
+          // const desiredPosition = index + 1;
           console.log("desiredPosition = ",desiredPosition)
           const genNewChannel = await newState.guild.channels.create({
             name: name.name,
             type: ChannelType.GuildVoice,
             parent: newState.channel.parent,
-            position: desiredPosition, // Place at specified position
+            //position: desiredPosition, // Place at specified position
           });
 
           newState.setChannel(genNewChannel);
