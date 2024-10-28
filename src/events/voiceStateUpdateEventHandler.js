@@ -47,14 +47,18 @@ module.exports = {
             parent: newState.channel.parent,
             //position: desiredPosition, // Place at specified position
           });
-
-          newState.setChannel(genNewChannel);
-          var currentChanel = {
-            id: genNewChannel.id,
-            users: [],
-            master: newState.id,
-            name:name
-          };
+          try{
+            newState.setChannel(genNewChannel);
+            var currentChanel = {
+              id: genNewChannel.id,
+              users: [],
+              master: newState.id,
+              name:name
+            };
+          }catch (e){
+            console.log("****** error ",e);
+          }
+          
           guildData.aActiveChannels.push(currentChanel);
           await setGuildData(guild.id, guildData)
           // console.log("***** aActiveChannels ", guildData.aActiveChannels);
@@ -92,10 +96,14 @@ module.exports = {
             guildData.aActiveChannels[index].users.splice(userIndex, 1); //remove
             await setGuildData(guild.id, guildData)
             if (guildData.aActiveChannels[index].users.length <= 0) {
-              oldState.guild.channels
+              try{
+                oldState.guild.channels
                 .delete(oldChannel, "making room for new channels")
                 .then(console.log)
                 .catch(console.error);
+              }catch(e){
+                onsole.log("***** error ", e);
+              }
                 guildData.aActiveChannels.splice(index, 1);
                 await setGuildData(guild.id, guildData)
               // console.log("***** aActiveChannels ", guildData.aActiveChannels);
@@ -110,7 +118,11 @@ module.exports = {
                 // if(whatName(guildData.aActiveChannels[index].name,newName)){
                 if(guildData.aActiveChannels[index].name != newName){
                   guildData.aActiveChannels[index].name=newName
-                  oldState.channel.edit({name:newName.name})
+                  try{
+                    oldState.channel.edit({name:newName.name})
+                  }catch( e ){
+                    console.log("**** error ", e);
+                  }
                 }
               }
               await setGuildData(guild.id, guildData)
