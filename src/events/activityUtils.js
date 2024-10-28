@@ -12,7 +12,7 @@ async function getGuildData(guildId) {
         // console.log("* Guild Data * :",guildId,data)
         return data;
     } catch (err) {
-        // console.error('Error reading or parsing file', err);
+        console.error('**@@@@@ Error @@@ Error @@@ Error @@@@@@****** Error reading or parsing file ******* \n', err);
         return {"aActiveChannels":[],"rootChannelId":[]};
     }
 }
@@ -24,9 +24,9 @@ async function setGuildData(guildId, data) {
         const filePath = path.join(dataDirPath, `data_${guildId}.json`);
         // Write JSON string to a file
         await fs.writeFile(filePath, jsonData);
-        console.log('JSON data written to file successfully');
+        console.log('@@@@@@@@@@ data for guildId :',guildId ,"\n", jsonData);
     } catch (err) {
-        console.error('Error writing to file', err);
+        console.error('**@@@@@ Error @@@ Error @@@ Error @@@@****** Error writing to file **@@@@@@@@@@@@@@@@******\m', err);
     }
 }
 
@@ -37,7 +37,7 @@ function getActivityName(User) {
       let activities = User.presence.activities;
       if (activities && activities.length) {
         activities.forEach((activity) => {
-          console.log("********** activity ",activity.name," ",activity.state," ",activity.type)
+          console.log("**** activity ",activity.name," ",activity.state," ",activity.type)
           switch (activity.type) {
             case 0: //'Game'
               activityName = {"name": '\u{1F3AE}' +activity.name,

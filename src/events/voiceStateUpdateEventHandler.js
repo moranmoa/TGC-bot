@@ -58,13 +58,13 @@ module.exports = {
           );
         }
       }
-
+      
       //add user if join to voice
       if(newState && newState.guild && guildData.aActiveChannels){
         var index = guildData.aActiveChannels.findIndex(
           (chanel) => chanel.id === newChannel
         );
-        console.log("***** index new Channel :", index);
+        console.log("***** index Channel :", index);
         if (index !== -1) {
           guildData.aActiveChannels[index].users.push(newState.id);
           await setGuildData(guild.id, guildData)

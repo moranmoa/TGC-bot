@@ -12,6 +12,7 @@ module.exports = {
       var guildData = await getGuildData(guild.id);
       if(!guildData.aActiveChannels){
         guildData.aActiveChannels = []
+        setGuildData(guild.id, guildData)
       }
       aActiveChannels = guildData.aActiveChannels
       // if(aActiveChannels){
@@ -22,17 +23,16 @@ module.exports = {
           if(whatName(ActiveChannel.name,newName)){
             console.log("********** voice changing name to ",newName.name)
             ActiveChannel.name=newName
-            setGuildData(guild.id, guildData)
             // updateChannelName(voceChannel, guildData, newName) crush the app
-            voceChannel.edit({name:newName.name}).then((voceChannel) =>{
-              if(voceChannel){
-                console.log("********** voceChannel name is ",voceChannel.name)
-              }
-              
+            try{
+              voceChannel.edit({name:newName.name}).then((voceChannel) =>{
+                if(voceChannel){
+                  console.log("* voceChannel name is ",voceChannel.name)
+                }
+              }).catch(console.error);
+            }catch(e){
+              console.log("*** voice changing Error \n", e)
             }
-            )
-            .catch(console.error);
-            
           }
           
         }

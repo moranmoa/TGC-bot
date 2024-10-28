@@ -24,10 +24,14 @@ async function resetEmptyChannels(guild) {
           return false; // Remove from the array
         }
       } catch (e) {
-        guild.channels
-          .delete(activeChannel.id, "making room for new channels")
-          // .then(console.log)
-          .catch(console.error);
+        try {
+          guild.channels
+            .delete(activeChannel.id, "making room for new channels")
+            // .then(console.log)
+            .catch(console.error);
+        }catch(e){
+          console.log("cant delete channel \n", e)
+        }
         return false; // Remove from the array
       }
       return true; // Keep in the array
