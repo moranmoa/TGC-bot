@@ -4,6 +4,7 @@
 
 - Clone the repo
 - Cd into the TGC-bot folder
+- get node js v21.xx
 
 ### Unix
 ```js
