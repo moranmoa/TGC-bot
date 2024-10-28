@@ -83,7 +83,7 @@ module.exports = {
       }
       
       //remove user if left voice
-      if(oldState){
+      if(oldState && oldState.id){
         var index = guildData.aActiveChannels.findIndex(
           (chanel) => chanel.id === oldChannel
         );
