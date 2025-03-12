@@ -1,0 +1,19 @@
+
+services:
+  tgc-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        GITHUB_REPO: https://github.com/moranmoa/TGC-bot.git
+    environment:
+      TOKEN: ${TOKEN}
+      GUILD_ID: ${GUILD_ID}
+      BOT_ID: ${BOT_ID}
+      dev: ${dev}
+      dudiBOT_ID: ${dudiBOT_ID}
+      dudiTOKEN: ${dudiTOKEN}
+    volumes:
+      - ./data:/app/data
+    #restart: unless-stopped
+    restart: always
