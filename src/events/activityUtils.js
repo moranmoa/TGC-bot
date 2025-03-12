@@ -2,7 +2,8 @@ const { Guild } = require('discord.js');
 const path = require('path');
 const fs = require('fs').promises;
 
-const dataDirPath = path.join(__dirname, '..', 'data');
+// const dataDirPath = path.join(__dirname, '..', 'data');
+const dataDirPath = '/app/data';
 
 async function getGuildData(guildId) {
     try {
