@@ -66,3 +66,14 @@ const appLogger = log4js.getLogger("client"); //(logger category) (one of: app |
 
 appLogger.log("New Channel Created", {iD: channel.id,name: channel.name}); // usage example writes to the logger that a new channel was created with the channel ID and the channel name.
 ```
+
+### install run in docker
+
+copy the docker-compose.yml , Dockerfile and .env file to location you want your data to be.
+open powershell in the folder and run
+```js
+docker-compose build --no-cache tgc-bot
+```
+```js
+docker-compose up -d
+```
