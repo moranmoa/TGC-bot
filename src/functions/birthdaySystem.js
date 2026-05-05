@@ -22,7 +22,7 @@ async function checkBirthdays(guild) {
 
     // בדיקת שעה (סביב 12 בצהריים)
     const currentHour = now.getHours();
-    if (currentHour === 12) {
+    if (currentHour >= 12 && currentHour <= 15) {
         const birthdayChannel = guild.channels.cache.get(guildData.birthdayToast.channel);
         if (!birthdayChannel) return;
 
@@ -30,6 +30,7 @@ async function checkBirthdays(guild) {
 
         for (let userEntry of guildData.aBirthDayList) {
             if (userEntry.birthday === todayStr && !userEntry.announcedThisYear) {
+                console.log("BBBBBB  הולדת מזל טוב Birthdays ")
                 await birthdayChannel.send(`🥳 מזל טוב ל- <@${userEntry.id}>! יום הולדת שמח! 🎉`);
                 userEntry.announcedThisYear = true;
                 dataChanged = true;
@@ -44,12 +45,14 @@ async function checkBirthdays(guild) {
 
 // פונקציית הפעלה דומה ל-Goblin
 function activateBirthdaySystem(guild) {
-    // בדיקה כל שעה (3600000 מ"ש)
-    setInterval(() => {
-        checkBirthdays(guild);
-    }, 60 * 60 * 1000);
+// בדיקה כל 60 דקות 
+setInterval(() => {
+    checkBirthdays(guild);
+    console.log("BBBBBB check Birthdays ")
+}, 60 * 60 * 1000);
     
     // הרצה ראשונית מיד בטעינה
+    console.log("BBBBBB first INIT check Birthdays ")
     checkBirthdays(guild);
 }
 
