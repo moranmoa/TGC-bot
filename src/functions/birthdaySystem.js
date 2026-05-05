@@ -19,9 +19,10 @@ async function checkBirthdays(guild) {
         guildData.birthdayToast.lastCheckedDate = todayFullDate;
         await setGuildData(guild.id, guildData);
     }
-
+    
     // בדיקת שעה (סביב 12 בצהריים)
     const currentHour = now.getHours();
+    console.log("BBBBBB בדיקת שעה (סביב 12 בצהריים)  Birthdays ",currentHour)
     if (currentHour >= 12 && currentHour <= 15) {
         const birthdayChannel = guild.channels.cache.get(guildData.birthdayToast.channel);
         if (!birthdayChannel) return;
