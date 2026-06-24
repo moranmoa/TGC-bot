@@ -45,6 +45,12 @@ module.exports = {
                         console.log(`User: ${message.author.tag} (${message.author.id})`);
                         await message.member.timeout(10 * 60 * 1000, 'Do not spam!');
 
+                        try {
+                            await message.author.send('It looks like your account might have been compromised, please take care of it.');
+                        } catch (err) {
+                            console.error('Could not send DM to user:', err);
+                        }
+
                         // Delete the spam messages from their respective channels
                         for (const msg of messagesArray) {
                             if (msg.content === newMessage.content && 
