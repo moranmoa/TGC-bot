@@ -58,3 +58,4 @@ setInterval(() => {
 }
 
 module.exports = { activateBirthdaySystem };
+
