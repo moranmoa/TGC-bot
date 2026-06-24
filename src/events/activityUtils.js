@@ -2,17 +2,22 @@ const { Guild } = require('discord.js');
 const path = require('path');
 const fs = require('fs').promises;
 
-// const dataDirPath = path.join(__dirname, '..', 'data');
-const dataDirPath = '/app/data';
+const dataDirPath = path.join(__dirname, '..', 'data');
+//TODO runlocal or in docker
+// const dataDirPath = '/app/data';
+// const dataDirPath = '/app/data';
+
 
 async function getGuildData(guildId) {
     try {
+        debugger;
         const filePath = path.join(dataDirPath, `data_${guildId}.json`);
         const jsonString = await fs.readFile(filePath, 'utf8');
         const data = JSON.parse(jsonString);
         // console.log("* Guild Data * :",guildId,data)
         return data;
     } catch (err) {
+        debugger
         console.error('**@@@@@ Error @@@ Error @@@ Error @@@@@@****** Error reading or parsing file ******* \n', err);
         return {"aActiveChannels":[],"rootChannelId":[]};
     }
@@ -22,12 +27,34 @@ async function setGuildData(guildId, data) {
     const jsonData = JSON.stringify(data, null, 2);
 
     try {
+        debugger
         const filePath = path.join(dataDirPath, `data_${guildId}.json`);
         // Write JSON string to a file
-        await fs.writeFile(filePath, jsonData);
+       await fs.writeFile(filePath, jsonData);
         console.log('@@@@@@@@@@ data for guildId :',guildId ,"\n", jsonData);
     } catch (err) {
+        debugger
         console.error('**@@@@@ Error @@@ Error @@@ Error @@@@****** Error writing to file **@@@@@@@@@@@@@@@@******\m', err);
+    }
+}
+
+async function getMessagesData(guildId) {
+    try {
+        const filePath = path.join(dataDirPath, `data_${guildId}_messages.json`);
+        const jsonString = await fs.readFile(filePath, 'utf8');
+        return JSON.parse(jsonString);
+    } catch (err) {
+        return [];
+    }
+}
+
+async function setMessagesData(guildId, data) {
+    const jsonData = JSON.stringify(data, null, 2);
+    try {
+        const filePath = path.join(dataDirPath, `data_${guildId}_messages.json`);
+        await fs.writeFile(filePath, jsonData);
+    } catch (err) {
+        console.error('Error writing messages data:', err);
     }
 }
 
@@ -113,4 +140,4 @@ function getActivityName(User) {
     }
 }
 
-  module.exports = {getActivityName ,whatName, getGuildData ,setGuildData, updateChannelName};
+  module.exports = {getActivityName ,whatName, getGuildData ,setGuildData, getMessagesData, setMessagesData, updateChannelName};
