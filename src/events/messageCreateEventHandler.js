@@ -15,7 +15,8 @@ module.exports = {
                 const newMessage = {
                     content: message.content,
                     timestamp: message.createdAt.getTime(),
-                    authorId: message.author.id
+                    authorId: message.author.id,
+                    messageId: message.id
                 };
 
                 messagesArray.push(newMessage);
@@ -40,6 +41,7 @@ module.exports = {
 
                     if (identicalMessagesCount > 3) {
                         console.log('*** Spam Protection make action ***');
+                        console.log(`User: ${message.author.tag} (${message.author.id})`);
                     }
                 }
             }
