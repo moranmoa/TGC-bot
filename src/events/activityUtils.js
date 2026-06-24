@@ -10,14 +10,12 @@ const dataDirPath = '/app/data';
 
 async function getGuildData(guildId) {
     try {
-        debugger;
         const filePath = path.join(dataDirPath, `data_${guildId}.json`);
         const jsonString = await fs.readFile(filePath, 'utf8');
         const data = JSON.parse(jsonString);
         // console.log("* Guild Data * :",guildId,data)
         return data;
     } catch (err) {
-        debugger
         console.error('**@@@@@ Error @@@ Error @@@ Error @@@@@@****** Error reading or parsing file *******\n change the TODO run in docker or local \n', err);
         return {"aActiveChannels":[],"rootChannelId":[]};
     }
@@ -27,13 +25,11 @@ async function setGuildData(guildId, data) {
     const jsonData = JSON.stringify(data, null, 2);
 
     try {
-        debugger
         const filePath = path.join(dataDirPath, `data_${guildId}.json`);
         // Write JSON string to a file
        await fs.writeFile(filePath, jsonData);
         console.log('@@@@@@@@@@ data for guildId :',guildId ,"\n", jsonData);
     } catch (err) {
-        debugger
         console.error('**@@@@@ Error @@@ Error @@@ Error @@@@****** Error writing to file **@@@@@@@@@@@@@@@@****** \n change the TODO run in docker or local \m', err);
     }
 }
