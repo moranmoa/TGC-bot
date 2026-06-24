@@ -43,7 +43,7 @@ module.exports = {
                     if (identicalMessagesCount > 3) {
                         console.log('*** Spam Protection make action ***');
                         console.log(`User: ${message.author.tag} (${message.author.id})`);
-                        await message.member.timeout(10 * 60 * 1000, 'Do not spam!');
+                        await message.member.timeout(120 * 60 * 1000, 'Do not spam!');
 
                         try {
                             await message.author.send('It looks like your account might have been compromised, please take care of it.');

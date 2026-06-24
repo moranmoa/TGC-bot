@@ -2,10 +2,10 @@ const { Guild } = require('discord.js');
 const path = require('path');
 const fs = require('fs').promises;
 
-const dataDirPath = path.join(__dirname, '..', 'data');
-//TODO runlocal or in docker
-// const dataDirPath = '/app/data';
-// const dataDirPath = '/app/data';
+//TODO run local
+// const dataDirPath = path.join(__dirname, '..', 'data');
+//TODO run in docker
+const dataDirPath = '/app/data';
 
 
 async function getGuildData(guildId) {
@@ -18,7 +18,7 @@ async function getGuildData(guildId) {
         return data;
     } catch (err) {
         debugger
-        console.error('**@@@@@ Error @@@ Error @@@ Error @@@@@@****** Error reading or parsing file ******* \n', err);
+        console.error('**@@@@@ Error @@@ Error @@@ Error @@@@@@****** Error reading or parsing file *******\n change the TODO run in docker or local \n', err);
         return {"aActiveChannels":[],"rootChannelId":[]};
     }
 }
@@ -34,7 +34,7 @@ async function setGuildData(guildId, data) {
         console.log('@@@@@@@@@@ data for guildId :',guildId ,"\n", jsonData);
     } catch (err) {
         debugger
-        console.error('**@@@@@ Error @@@ Error @@@ Error @@@@****** Error writing to file **@@@@@@@@@@@@@@@@******\m', err);
+        console.error('**@@@@@ Error @@@ Error @@@ Error @@@@****** Error writing to file **@@@@@@@@@@@@@@@@****** \n change the TODO run in docker or local \m', err);
     }
 }
 
