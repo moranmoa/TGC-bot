@@ -31,7 +31,7 @@ module.exports = {
                 const hasAdminRole = message.member.roles.cache.some(role => role.name === 'bot' || role.name === 'mod');
 
                 if (!hasAdminRole) {
-                    const tenMinutesAgo = Date.now() - (10 * 60 * 1000);
+                    const tenMinutesAgo = Date.now() - (5 * 60 * 1000);
                     // Count identical messages (same content and author) in the last 10 minutes
                     const identicalMessagesCount = messagesArray.filter(msg => 
                         msg.content === newMessage.content && 
@@ -42,6 +42,8 @@ module.exports = {
                     if (identicalMessagesCount > 3) {
                         console.log('*** Spam Protection make action ***');
                         console.log(`User: ${message.author.tag} (${message.author.id})`);
+                        await message.member.timeout(10 * 60 * 1000, 'Do not spam!');
+                        
                     }
                 }
             }
