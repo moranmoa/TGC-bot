@@ -45,6 +45,13 @@ module.exports = {
                         console.log(`User: ${message.author.tag} (${message.author.id})`);
                         await message.member.timeout(120 * 60 * 1000, 'Do not spam!');
 
+                        if (guildData.SpamProtectionLogChannel) {
+                            const logChannel = client.channels.cache.get(guildData.SpamProtectionLogChannel);
+                            if (logChannel) {
+                                await logChannel.send(`*** Spam Protection action ***\nUser: ${message.author.tag} (${message.author.id})\nAction: Timeout for 2 hours due to spamming.`);
+                            }
+                        }
+
                         try {
                             await message.author.send('It looks like your account might have been compromised, please take care of it.');
                         } catch (err) {

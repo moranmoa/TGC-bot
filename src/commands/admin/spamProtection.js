@@ -9,16 +9,39 @@ module.exports = {
             option
                 .setName('enable')
                 .setDescription('enable or disable Spam protection')
+        )
+        .addChannelOption(option =>
+            option
+                .setName('logchannel')
+                .setDescription('The channel to log spam protection actions')
         ),
-        
-    async execute(interaction){
-        const enable= interaction.options.get('enable').value
+
+    async execute(interaction) {
+        const enable = interaction.options.getBoolean('enable');
+        const logChannel = interaction.options.getChannel('logchannel');
         let guild = interaction.guild;
         var guildData = await getGuildData(guild.id);
-        guildData.SpamProtection = enable
-        await setGuildData(guild.id, guildData)
-        // console.log(interaction)
-        // console.log(`Num 1 = ${num1}, Num 2 = ${num2}`)
-        await interaction.reply(`Spam protection ${enable ? 'enabled' : 'disabled'}`);
+
+        if (enable === null) {
+            return interaction.reply({ content: 'Please provide the `enable` option.', ephemeral: true });
+        }
+
+        guildData.SpamProtection = enable;
+
+        if (enable) {
+            if (logChannel) {
+                guildData.SpamProtectionLogChannel = logChannel.id;
+            }
+        } else {
+            delete guildData.SpamProtectionLogChannel;
+        }
+
+        await setGuildData(guild.id, guildData);
+
+        let response = `Spam protection ${enable ? 'enabled' : 'disabled'}`;
+        if (enable && logChannel) {
+            response += ` with log channel <#${logChannel.id}>`;
+        }
+        await interaction.reply(response);
     },
 };
