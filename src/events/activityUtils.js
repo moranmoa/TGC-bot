@@ -2,11 +2,7 @@ const { Guild } = require('discord.js');
 const path = require('path');
 const fs = require('fs').promises;
 
-//TODO run local
-// const dataDirPath = path.join(__dirname, '..', 'data');
-//TODO run in docker
-const dataDirPath = '/app/data';
-
+const dataDirPath = process.env.APP_ENV === 'DEV' ? path.join(__dirname, '..', 'data') : '/app/data';
 
 async function getGuildData(guildId) {
     try {
