@@ -4,6 +4,7 @@ const fs = require('fs').promises;
 
 const dataDirPath = process.env.APP_ENV === 'DEV' ? path.join(__dirname, '..', 'data') : '/app/data';
 
+
 async function getGuildData(guildId) {
     try {
         const filePath = path.join(dataDirPath, `data_${guildId}.json`);

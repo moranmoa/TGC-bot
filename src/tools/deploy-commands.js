@@ -39,8 +39,12 @@ for (const folder of commandFolders) {
     );
 
     // The put method is used to fully refresh all commands in the guild with the current set
+    // const data = await rest.put(
+    //   Routes.applicationGuildCommands(process.env.BOT_ID, process.env.GUILD_ID),
+    //   { body: commands }
+    // );
     const data = await rest.put(
-      Routes.applicationGuildCommands(process.env.BOT_ID, process.env.GUILD_ID),
+      Routes.applicationCommands(process.env.BOT_ID),
       { body: commands }
     );
 
