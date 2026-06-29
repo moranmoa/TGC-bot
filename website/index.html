@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TGC-ChatBOT | Powerful Discord Utility</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .hero-gradient {
+            background: radial-gradient(circle at center, rgba(56, 189, 248, 0.15) 0%, rgba(15, 23, 42, 0) 70%);
+        }
+        .feature-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(56, 189, 248, 0.5);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center overflow-hidden hero-gradient">
+        <div class="absolute inset-0 z-0 opacity-30" style="background: url('../logo.jpg') no-repeat center; background-size: contain; opacity: 0.05;"></div>
+        <div class="absolute inset-0 z-0 opacity-30" style="background-image: url('https://www.transparenttextures.com/patterns/cubes.png');"></div>
+        
+        <div class="container mx-auto px-6 relative z-10 text-center">
+            <!-- <img src="../logo.jpg" alt="TGC-ChatBOT Logo" class="mx-auto w-32 h-32 md:w-48 md:h-48 mb-8 drop-shadow-2xl"> -->
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
+                TGC-BOT
+            </h1>
+            <p class="text-xl md:text-2xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+                Elevate your Discord server experience with advanced automation, unparalleled security, and seamless voice channel management.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                 <a href="https://discord.com/oauth2/authorize?client_id=1248501003280449556" target="_blank" rel="noopener noreferrer" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-full transition duration-300 shadow-lg shadow-blue-500/25 flex items-center justify-center">
+                    <icon class="fab fa-discord mr-2 text-xl"></icon>
+                    Invite Bot
+                </a>
+                <a href="#features" class="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-full transition duration-300 flex items-center justify-center border border-slate-700">
+                    Learn More
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-24 bg-[#0f172a]">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Core Capabilities</h2>
+                <p class="text-slate-400 max-w-lg mx-auto">Built to provide powerful tools that work seamlessly in the background of your community.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Feature 1 -->
+                <div class="feature-card p-8 rounded-2xl">
+                    <div class="w-14 h-14 bg-blue-500/10 rounded-lg flex items-center justify-center mb-6 text-blue-400">
+                        <i class="fas fa-microphone-alt text-3xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-white mb-4">Dynamic Voice Channels</h3>
+                    <p class="text-slate-400 leading-relaxed">
+                        Automatically create private, temporary voice channels for users. Enhance privacy and organization by ensuring members only stay in channels when they are active.
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="feature-card p-8 rounded-2xl">
+                    <div class="w-14 h-14 bg-red-500/10 rounded-lg flex items-center justify-center mb-6 text-red-400">
+                        <i class="fas fa-shield-alt text-3xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-white mb-4">Advanced Spam Protection</h3>
+                    <p class="text-slate-400 leading-relaxed">
+                        Keep your community safe and clean. Our intelligent protection system detects and mitigates spamming behavior, protecting your members from unwanted disruptions.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 bg-slate-900/50">
+        <div class="container mx-auto px-6 text-center">
+            <div class="max-w-3xl mx-auto feature-card p-12 rounded-3xl shadow-2xl border-blue-500/20">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">Ready to upgrade your server?</h2>
+                <p class="text-slate-400 text-lg mb-10">
+                    Join thousands of users already benefiting from the power of TGC-ChatBOT. One click is all it takes!
+                </p>
+                 <a href="https://discord.com/oauth2/authorize?client_id=1248501003280449556" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-10 py-5 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold rounded-full transition duration-300 transform hover:scale-105 shadow-xl shadow-blue-500/30">
+                    <i class="fab fa-discord mr-3 text-2xl"></i>
+                    Add to Discord Now
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-10 border-t border-slate-800">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-slate-500 text-sm">
+            <p>&copy; 2026 TGC-ChatBOT. All rights reserved.</p>
+            <div class="flex space-x-6 mt-4 md:mt-0">
+                <a href="#" class="hover:text-blue-400 transition duration-200">Privacy Policy</a>
+                <a href="#" class="hover:text-blue-400 transition duration-200">Terms of Service</a>
+                <a href="#" class="hover:text-blue-400 transition duration-200">Support</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
