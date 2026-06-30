@@ -66,4 +66,11 @@ for (const file of eventFiles) {
   }
 }
 
+// התחברות לדיסקורד
 client.login(process.env.TOKEN);
+
+// ==========================================
+// הפעלת שרת ה-Web והעברת אובייקט ה-client אליו
+// ==========================================
+const startWebServer = require('./server.js');
+startWebServer(client);
