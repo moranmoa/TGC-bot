@@ -1,3 +1,4 @@
+version: '3.8'
 
 services:
   tgc-bot:
@@ -6,6 +7,8 @@ services:
       dockerfile: Dockerfile
       args:
         GITHUB_REPO: https://github.com/moranmoa/TGC-bot.git
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
     environment:
       TOKEN: ${TOKEN}
       GUILD_ID: ${GUILD_ID}
@@ -13,7 +16,11 @@ services:
       dev: ${dev}
       dudiBOT_ID: ${dudiBOT_ID}
       dudiTOKEN: ${dudiTOKEN}
+      # נוסיף משתנה סביבה לפורט של השרת
+      PORT: 8084 
+    ports:
+      # חשיפת הפורט מהקונטיינר של הבוט החוצה
+      - "8084:8084" 
     volumes:
       - ./data:/app/data
-    #restart: unless-stopped
     restart: always

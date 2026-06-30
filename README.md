@@ -35,6 +35,7 @@ Execute: -Set-ExecutionPolicy RemoteSigned -Scope CurrentUser*
 TOKEN = MT......
 GUILD_ID = 23...
 BOT_ID = 124...
+PORT=8084
 ```
 
 ## Utilities
@@ -72,7 +73,7 @@ appLogger.log("New Channel Created", {iD: channel.id,name: channel.name}); // us
 copy the docker-compose.yml , Dockerfile and .env file to location you want your data to be.
 open powershell in the folder and run
 ```js
-docker-compose build --no-cache tgc-bot
+docker compose build --no-cache
 ```
 ```js
 docker-compose up -d
