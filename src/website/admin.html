@@ -31,10 +31,10 @@
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans antialiased">
 
-    <div class="flex h-screen overflow-hidden text-right" dir="rtl">
+    <div class="flex h-screen overflow-hidden text-left" dir="ltr">
         
-        <aside class="w-80 bg-slate-800 border-l border-slate-700 flex flex-col p-4 z-10 shadow-2xl">
-            <div class="mb-6 pb-4 border-b border-slate-700 flex justify-between items-center flex-row-reverse">
+        <aside class="w-80 bg-slate-800 border-r border-slate-700 flex flex-col p-4 z-10 shadow-2xl">
+            <div class="mb-6 pb-4 border-b border-slate-700 flex justify-between items-center">
                 <h2 class="text-xl font-bold text-white flex items-center gap-2">
                     <i class="fas fa-cogs text-blue-500"></i>
                     TGC-BOT Panel
@@ -42,50 +42,50 @@
             </div>
 
             <div class="mb-6">
-                <label for="server-select" class="block text-sm font-semibold text-slate-400 mb-2">בחר שרת לניהול</label>
+                <label for="server-select" class="block text-sm font-semibold text-slate-400 mb-2">Select a server to manage</label>
                 <select id="server-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer transition">
-                    <option value="" disabled selected>-- טוען שרתים... --</option>
+                    <option value="" disabled selected>-- Loading servers... --</option>
                 </select>
             </div>
             
             <div id="sidebar-commands-section" class="flex-1 overflow-y-auto hidden border-t border-slate-700/50 pt-4">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">פקודות זמינות</h3>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Available Commands</h3>
                 <ul id="sidebar-commands-list" class="space-y-1">
-                    </ul>
+                </ul>
             </div>
         </aside>
 
         <main class="flex-1 overflow-y-auto p-8 bg-slate-900" id="main-content">
             <div id="placeholder-content" class="h-full flex flex-col justify-center items-center text-slate-500">
                 <i class="fas fa-th-large text-6xl mb-4 text-slate-700"></i>
-                <p class="text-xl font-medium">אנא בחר שרת מהתפריט הצידי כדי להתחיל</p>
+                <p class="text-xl font-medium">Please select a server from the sidebar to begin</p>
             </div>
         </main>
     </div>
 
     <script>
-        // --- 1. תיקון ה-401: חילוץ וסנכרון הטוקן מיד עם טעינת הסקריפט ---
+        // --- 1. Fix 401: Extract and sync the token immediately upon script load ---
         const urlParams = new URLSearchParams(window.location.search);
         const urlToken = urlParams.get('token');
         
         if (urlToken) {
             localStorage.setItem('discord_token', urlToken);
-            // מנקים את ה-URL כדי להישאר עם כתובת נקייה ללא הטוקן החשוף
+            // Clean the URL to keep it without the exposed token
             window.history.replaceState({}, document.title, window.location.pathname);
         }
         
         const token = localStorage.getItem('discord_token');
         if (!token) {
-            // אם אין טוקן בכלל, מחזירים לעמוד הבית או ה-Login
+            // If there's no token, redirect to home or login page
             window.location.href = '/'; 
         }
 
-        // משתנים גלובליים לשמירת המידע שהגיע מהשרת
+        // Global variables to store data from the server
         let globalGuilds = [];
         let globalCommands = [];
         let selectedGuildId = null;
 
-        // הפעלה אוטומטית ברגע שה-DOM מוכן
+        // Auto-run when the DOM is ready
         document.addEventListener('DOMContentLoaded', async () => {
             await loadAdminDashboard(token);
         });
@@ -107,7 +107,7 @@
                 globalGuilds = data.guilds || [];
                 globalCommands = data.commands || [];
 
-                // מרנדרים את השרתים לתוך ה-Dropdown
+                // Render servers into the dropdown
                 renderServersDropdown(globalGuilds);
 
             } catch (error) {
@@ -121,13 +121,13 @@
             }
         }
 
-        // רינדור השרתים לתוך ה-Dropdown
+        // Render servers into the Dropdown
         function renderServersDropdown(guilds) {
             const select = document.getElementById('server-select');
-            select.innerHTML = '<option value="" disabled selected>-- בחר שרת מהרשימה --</option>';
+            select.innerHTML = '<option value="" disabled selected>-- Select a server from the list --</option>';
 
             if (guilds.length === 0) {
-                select.innerHTML = '<option value="" disabled>לא נמצאו שרתים מנוהלים</option>';
+                select.innerHTML = '<option value="" disabled>No managed servers found</option>';
                 return;
             }
 
@@ -138,33 +138,33 @@
                 select.appendChild(option);
             });
 
-            // האזנה לשינוי בחירה בדרופדאון
+            // Listen to dropdown selection changes
             select.addEventListener('change', (e) => {
                 selectedGuildId = e.target.value;
                 handleServerSelection(selectedGuildId);
             });
         }
 
-        // טיפול באירוע של בחירת שרת
+        // Handle server selection event
         function handleServerSelection(guildId) {
-            // 1. הצגת אזור הפקודות בסיידבר
+            // 1. Show the commands section in the sidebar
             document.getElementById('sidebar-commands-section').classList.remove('hidden');
             
-            // 2. רינדור רשימת הפקודות בסיידבר
+            // 2. Render the commands list in the sidebar
             renderCommandsSidebar(globalCommands);
 
-            // 3. עדכון אזור התוכן המרכזי להנחיה הבאה
+            // 3. Update the main content area with instructions
             const selectedGuild = globalGuilds.find(g => g.id === guildId);
             document.getElementById('main-content').innerHTML = `
                 <div class="h-full flex flex-col justify-center items-center text-slate-500">
                     <i class="fas fa-terminal text-6xl mb-4 text-slate-700"></i>
-                    <p class="text-xl font-medium">השרת <strong>${selectedGuild?.name}</strong> נבחר</p>
-                    <p class="text-sm text-slate-400 mt-1">בחר פקודה מהתפריט הימני כדי להגדיר אותה</p>
+                    <p class="text-xl font-medium">Server <strong>${selectedGuild?.name}</strong> selected</p>
+                    <p class="text-sm text-slate-400 mt-1">Select a command from the sidebar to configure it</p>
                 </div>
             `;
         }
 
-        // רינדור רשימת הפקודות לתוך הסיידבר
+        // Render commands list into the sidebar
         function renderCommandsSidebar(commands) {
             const listContainer = document.getElementById('sidebar-commands-list');
             listContainer.innerHTML = '';
@@ -172,24 +172,24 @@
             commands.forEach(cmd => {
                 const li = document.createElement('li');
                 li.innerHTML = `
-                    <button class="w-full text-right px-4 py-2.5 rounded-xl text-slate-300 hover:bg-slate-700/50 hover:text-white transition flex items-center justify-between font-medium text-sm">
+                    <button class="w-full text-left px-4 py-2.5 rounded-xl text-slate-300 hover:bg-slate-700/50 hover:text-white transition flex items-center justify-between font-medium text-sm">
                         <span class="font-mono text-xs bg-slate-900/40 px-2 py-0.5 rounded border border-slate-700/60">/${cmd.name}</span>
                     </button>
                 `;
 
                 const btn = li.querySelector('button');
                 btn.addEventListener('click', (e) => {
-                    // ביטול סימון אקטיבי מכל שאר כפתורי הפקודות
+                    // Remove active styling from all other command buttons
                     listContainer.querySelectorAll('button').forEach(b => {
                         b.classList.remove('bg-blue-600', 'text-white', 'shadow-lg');
                         b.classList.add('text-slate-300', 'hover:bg-slate-700/50');
                     });
                     
-                    // סימון הכפתור הנוכחי כאקטיבי
+                    // Add active styling to the clicked button
                     e.currentTarget.classList.add('bg-blue-600', 'text-white', 'shadow-lg');
                     e.currentTarget.classList.remove('hover:bg-slate-700/50');
 
-                    // טעינת הלוגיקה הספציפית של הפקודה למרכז המסך
+                    // Load specific command logic into the main screen
                     loadCommandLogic(cmd);
                 });
 
@@ -197,29 +197,29 @@
             });
         }
 
-        // טעינת לוגיקת הפקודה למרכז המסך בהתאם לפקודה שנלחצה
+        // Load command logic into the main screen based on the clicked command
         function loadCommandLogic(command) {
             const mainContent = document.getElementById('main-content');
 
             if (command.name === 'spamprotection') {
-                // תוכן דינמי ייעודי עבור פקודת ה-Spam Protection
+                // Dynamic content specifically for Spam Protection
                 mainContent.innerHTML = `
                     <div class="max-w-2xl bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl animate-fadeIn">
-                        <div class="flex items-center justify-between border-b border-slate-700 pb-4 mb-6 flex-row-reverse">
+                        <div class="flex items-center justify-between border-b border-slate-700 pb-4 mb-6">
                             <div>
-                                <h2 class="text-2xl font-bold text-white flex items-center gap-2 justify-end">
-                                    הגדרות Spam Protection
+                                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                                    Spam Protection Settings
                                     <i class="fas fa-shield-alt text-blue-500"></i>
                                 </h2>
-                                <p class="text-slate-400 text-sm mt-1">${command.description || 'ניהול מערכת הגנת הספאם של השרת'}</p>
+                                <p class="text-slate-400 text-sm mt-1">${command.description || 'Manage the server\'s spam protection system'}</p>
                             </div>
                         </div>
 
                         <div class="space-y-6">
-                            <div class="flex items-center justify-between bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 flex-row-reverse">
-                                <div class="text-right">
-                                    <h4 class="font-semibold text-white">סטטוס פקודה</h4>
-                                    <p class="text-xs text-slate-400">הפעל או כבה את סינון הספאם האוטומטי בשרת</p>
+                            <div class="flex items-center justify-between bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+                                <div class="text-left">
+                                    <h4 class="font-semibold text-white">Command Status</h4>
+                                    <p class="text-xs text-slate-400">Enable or disable automatic spam filtering on the server</p>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" id="spam-toggle" class="sr-only peer">
@@ -227,20 +227,20 @@
                                 </label>
                             </div>
 
-                            <div class="space-y-2 text-right">
-                                <label class="block text-sm font-semibold text-slate-300">ID של ערוץ לוגים (Log Channel ID)</label>
-                                <input type="text" id="spam-log-channel" placeholder="לדוגמה: 1248501003280449556" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500 text-left font-mono">
+                            <div class="space-y-2 text-left">
+                                <label class="block text-sm font-semibold text-slate-300">Log Channel ID</label>
+                                <input type="text" id="spam-log-channel" placeholder="e.g., 1248501003280449556" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500 text-left font-mono">
                             </div>
 
                             <button id="save-spam-settings" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2">
                                 <i class="fas fa-save"></i>
-                                שמור ועדכן שרת
+                                Save and Update Server
                             </button>
                         </div>
                     </div>
                 `;
 
-                // קישור כפתור השמירה לפונקציית ה-API שהכנו בשלב הקודם
+                // Link the save button to the API function 
                 document.getElementById('save-spam-settings').addEventListener('click', async () => {
                     const enable = document.getElementById('spam-toggle').checked;
                     const logChannelId = document.getElementById('spam-log-channel').value.trim();
@@ -248,19 +248,19 @@
                     if (typeof toggleSpamProtection === 'function') {
                         await toggleSpamProtection(selectedGuildId, enable, logChannelId);
                     } else {
-                        alert('פונקציית השמירה לשרת (toggleSpamProtection) עדיין לא הוגדרה.');
+                        alert('The server save function (toggleSpamProtection) is not defined yet.');
                     }
                 });
 
             } else {
-                // מסך גנרי לפקודות אחרות שעדיין לא יצרת להן טופס מותאם אישית
+                // Generic screen for other commands that don't have a custom form yet
                 mainContent.innerHTML = `
                     <div class="max-w-2xl bg-slate-800 border border-slate-700 rounded-2xl p-12 shadow-xl text-center">
                         <i class="fas fa-tools text-5xl text-amber-500 mb-4"></i>
                         <h2 class="text-2xl font-bold text-white mb-2">/${command.name}</h2>
-                        <p class="text-slate-400 mb-6">${command.description || 'אין תיאור זמין לפקודה זו.'}</p>
+                        <p class="text-slate-400 mb-6">${command.description || 'No description available for this command.'}</p>
                         <div class="inline-block px-4 py-2 bg-slate-900 rounded-lg border border-slate-700 text-sm text-amber-400 font-medium">
-                            הממשק עבור הגדרת פקודה זו נמצא כעת בפיתוח
+                            The interface for configuring this command is currently under development
                         </div>
                     </div>
                 `;
