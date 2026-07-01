@@ -28,6 +28,10 @@ function startWebServer(client) {
                 redirect_uri: 'https://tgc-bot.abecassis.vip/api/auth/discord/redirect' // חייב להיות זהה!
             });
 
+            console.log('--- DEBUG OAUTH2 ---');
+            console.log('BOT_ID:', process.env.BOT_ID);
+            console.log('CLIENT_SECRET exists?:', !!process.env.CLIENT_SECRET);
+            console.log('--------------------');
             const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
                 method: 'POST',
                 body: params,
