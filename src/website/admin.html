@@ -29,186 +29,243 @@
         }
     </style>
 </head>
-<body class="antialiased dashboard-gradient min-h-screen">
-    
-    <header class="w-full z-50 p-6 border-b border-slate-800 bg-[#0f172a]">
-        <div class="container mx-auto flex justify-between items-center">
-            <div class="flex items-center space-x-4">
-                <div class="text-xl font-bold text-white tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
-                    TGC Admin
-                </div>
-                <span class="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30 flex items-center">
-                    <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span> Connected
-                </span>
-            </div>
-            <a href="/" class="text-slate-400 hover:text-white transition duration-300">
-                <i class="fas fa-sign-out-alt mr-2"></i> Logout
-            </a>
-        </div>
-    </header>
+<body class="bg-slate-900 text-slate-100 font-sans antialiased">
 
-    <main class="container mx-auto px-6 py-10">
-    
-        <div class="mb-10 flex justify-between items-end">
-            <div>
-                <h1 class="text-3xl font-bold text-white mb-2">My Servers</h1>
-                <p class="text-slate-400">Select a server to manage</p>
-            </div>
-        </div>
-
-        <div id="servers-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+    <div class="flex h-screen overflow-hidden text-right" dir="rtl">
+        
+        <aside class="w-80 bg-slate-800 border-l border-slate-700 flex flex-col p-4 z-10 shadow-2xl">
+            <div class="mb-6 pb-4 border-b border-slate-700 flex justify-between items-center flex-row-reverse">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-cogs text-blue-500"></i>
+                    TGC-BOT Panel
+                </h2>
             </div>
 
-        <div class="mb-10 flex justify-between items-end">
-            <div>
-                <h1 class="text-3xl font-bold text-white mb-2">Bot Commands</h1>
-                <p class="text-slate-400">Manage and view all registered slash commands for TGC-BOT.</p>
+            <div class="mb-6">
+                <label for="server-select" class="block text-sm font-semibold text-slate-400 mb-2">בחר שרת לניהול</label>
+                <select id="server-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer transition">
+                    <option value="" disabled selected>-- טוען שרתים... --</option>
+                </select>
             </div>
-            <div class="text-slate-500 text-sm" id="command-count">
-                Loading commands...
+            
+            <div id="sidebar-commands-section" class="flex-1 overflow-y-auto hidden border-t border-slate-700/50 pt-4">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">פקודות זמינות</h3>
+                <ul id="sidebar-commands-list" class="space-y-1">
+                    </ul>
             </div>
-        </div>
+        </aside>
 
-        <div id="commands-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div id="loader" class="col-span-full flex justify-center py-12">
-                <i class="fas fa-circle-notch fa-spin text-3xl text-blue-500"></i>
+        <main class="flex-1 overflow-y-auto p-8 bg-slate-900" id="main-content">
+            <div id="placeholder-content" class="h-full flex flex-col justify-center items-center text-slate-500">
+                <i class="fas fa-th-large text-6xl mb-4 text-slate-700"></i>
+                <p class="text-xl font-medium">אנא בחר שרת מהתפריט הצידי כדי להתחיל</p>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
     <script>
-        // 1. חילוץ ושמירת ה-Token מה-URL
+        // --- 1. תיקון ה-401: חילוץ וסנכרון הטוקן מיד עם טעינת הסקריפט ---
         const urlParams = new URLSearchParams(window.location.search);
-        console.log('AAA inside ADMIN AA :');
-        let token = urlParams.get('token');
-        console.log('AA Token:', token);
-        if (token) {
-            console.log('AA 001' );
-
-            localStorage.setItem('discord_token', token);
-            // מנקים את ה-URL כדי שייראה אסתטי ללא הטוקן החשוף
-            window.history.replaceState({}, document.title, "/admin.html");
-        } else {
-             console.log('AA 002' );
-            token = localStorage.getItem('discord_token');
+        const urlToken = urlParams.get('token');
+        
+        if (urlToken) {
+            localStorage.setItem('discord_token', urlToken);
+            // מנקים את ה-URL כדי להישאר עם כתובת נקייה ללא הטוקן החשוף
+            window.history.replaceState({}, document.title, window.location.pathname);
         }
-
-        // אם אין טוקן בכלל, נחזיר אותו למסך הבית להתחברות
+        
+        const token = localStorage.getItem('discord_token');
         if (!token) {
-            window.location.href = '/';
+            // אם אין טוקן בכלל, מחזירים לעמוד הבית או ה-Login
+            window.location.href = '/'; 
         }
-        console.log('AA 003' );
 
+        // משתנים גלובליים לשמירת המידע שהגיע מהשרת
+        let globalGuilds = [];
+        let globalCommands = [];
+        let selectedGuildId = null;
+
+        // הפעלה אוטומטית ברגע שה-DOM מוכן
         document.addEventListener('DOMContentLoaded', async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            let token = urlParams.get('token');
-            console.log('AA 004' );
-
-            // אם הגענו עכשיו מה-Redirect עם טוקן ב-URL, נשמור אותו וננקה את הכתובת
-            if (token) {
-                localStorage.setItem('discord_token', token);
-                window.history.replaceState({}, document.title, '/admin.html');
-            } else {
-                token = localStorage.getItem('discord_token');
-            }
-
-            // אם אין טוקן בכלל, נחזיר לעמוד הראשי
-            if (!token) {
-                window.location.href = '/';
-                return;
-            }
-            console.log('AA 005' );
-
             await loadAdminDashboard(token);
         });
 
-        async function loadAdminDashboard(token) {
+        async function loadAdminDashboard(authToken) {
             try {
-                console.log('Fetching dashboard data with token...');
-                const response = await fetch(`/api/dashboard-data?token=${token}`);
-                
-                console.log('Response status:', response.status);
+                const response = await fetch(`/api/dashboard-data?token=${authToken}`);
                 
                 if (!response.ok) {
-                    // הוספת הדפסת התוכן של השגיאה כדי להבין מה השרת באמת מחזיר
-                    const errorText = await response.text();
-                    console.error('Server error response:', errorText);
-                    throw new Error(`Unauthorized: ${errorText}`);
+                    if (response.status === 401) {
+                        throw new Error('Unauthorized: Invalid token or Discord session expired');
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-
+                
                 const data = await response.json();
                 console.log('Data received:', data);
+                
+                globalGuilds = data.guilds || [];
+                globalCommands = data.commands || [];
 
-                renderServers(data.guilds);
-                renderCommands(data.commands);
+                // מרנדרים את השרתים לתוך ה-Dropdown
+                renderServersDropdown(globalGuilds);
 
             } catch (error) {
                 console.error('Failed to load dashboard:', error);
-                // השארתי את ה-Redirect רק כדי למנוע לופ אינסופי של טעינה
-                // אם אתה רוצה לחקור, תגיב את השורה למטה
-                // window.location.href = '/'; 
+                document.getElementById('main-content').innerHTML = `
+                    <div class="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl max-w-lg mx-auto mt-10 text-center">
+                        <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                        <p class="font-semibold">${error.message}</p>
+                    </div>
+                `;
             }
-}
+        }
 
-        function renderServers(guilds) {
-            const container = document.getElementById('servers-container'); // ודא שיש אלמנט כזה ב-HTML שלך
-            if (!container) return;
-            container.innerHTML = '';
+        // רינדור השרתים לתוך ה-Dropdown
+        function renderServersDropdown(guilds) {
+            const select = document.getElementById('server-select');
+            select.innerHTML = '<option value="" disabled selected>-- בחר שרת מהרשימה --</option>';
 
             if (guilds.length === 0) {
-                container.innerHTML = '<p class="text-slate-400 text-center col-span-full">לא נמצאו שרתים מורשים עם הבוט.</p>';
+                select.innerHTML = '<option value="" disabled>לא נמצאו שרתים מנוהלים</option>';
                 return;
             }
-            console.log('AA 008' );
+
             guilds.forEach(guild => {
-                const card = document.createElement('div');
-                card.className = 'command-card p-4 rounded-xl flex items-center space-x-4 cursor-pointer hover:bg-slate-800 transition';
-                
-                const iconUrl = guild.icon 
-                    ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` 
-                    : 'https://via.placeholder.com/150/1e293b/ffffff?text=Discord';
-                
-                card.innerHTML = `
-                    <img src="${iconUrl}" class="w-12 h-12 rounded-full border border-slate-700 shadow-md">
-                    <div class="flex-grow pl-3 text-right">
-                        <h2 class="text-xl font-bold text-white">${guild.name}</h2>
-                        <p class="text-xs text-blue-400">לחץ לניהול הגדרות השרת</p>
-                    </div>
-                `;
-                
-                card.onclick = () => loadServerSettings(guild.id, guild.name);
-                container.appendChild(card);
+                const option = document.createElement('option');
+                option.value = guild.id;
+                option.textContent = guild.name;
+                select.appendChild(option);
+            });
+
+            // האזנה לשינוי בחירה בדרופדאון
+            select.addEventListener('change', (e) => {
+                selectedGuildId = e.target.value;
+                handleServerSelection(selectedGuildId);
             });
         }
 
-        function renderCommands(commands) {
-            const container = document.getElementById('commands-container'); // ודא שיש אלמנט כזה ב-HTML להצגת הפקודות
-            if (!container) return;
-            container.innerHTML = '';
+        // טיפול באירוע של בחירת שרת
+        function handleServerSelection(guildId) {
+            // 1. הצגת אזור הפקודות בסיידבר
+            document.getElementById('sidebar-commands-section').classList.remove('hidden');
+            
+            // 2. רינדור רשימת הפקודות בסיידבר
+            renderCommandsSidebar(globalCommands);
 
-            if (commands.length === 0) {
-                container.innerHTML = '<p class="text-slate-400">לא נמצאו פקודות זמינות בבוט.</p>';
-                return;
-            }
-            console.log('AA 009' );
+            // 3. עדכון אזור התוכן המרכזי להנחיה הבאה
+            const selectedGuild = globalGuilds.find(g => g.id === guildId);
+            document.getElementById('main-content').innerHTML = `
+                <div class="h-full flex flex-col justify-center items-center text-slate-500">
+                    <i class="fas fa-terminal text-6xl mb-4 text-slate-700"></i>
+                    <p class="text-xl font-medium">השרת <strong>${selectedGuild?.name}</strong> נבחר</p>
+                    <p class="text-sm text-slate-400 mt-1">בחר פקודה מהתפריט הימני כדי להגדיר אותה</p>
+                </div>
+            `;
+        }
+
+        // רינדור רשימת הפקודות לתוך הסיידבר
+        function renderCommandsSidebar(commands) {
+            const listContainer = document.getElementById('sidebar-commands-list');
+            listContainer.innerHTML = '';
+
             commands.forEach(cmd => {
-                const card = document.createElement('div');
-                card.className = 'command-card p-4 rounded-xl border border-slate-700 mb-3 bg-slate-800/40 text-right';
-                card.innerHTML = `
-                    <div class="flex justify-between items-center flex-row-reverse">
-                        <span class="text-sm font-mono px-2 py-1 bg-blue-500/20 text-blue-400 rounded-md">/${cmd.name}</span>
-                    </div>
-                    <p class="text-sm text-slate-300 mt-2">${cmd.description || 'אין תיאור לפקודה זו'}</p>
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <button class="w-full text-right px-4 py-2.5 rounded-xl text-slate-300 hover:bg-slate-700/50 hover:text-white transition flex items-center justify-between font-medium text-sm">
+                        <span class="font-mono text-xs bg-slate-900/40 px-2 py-0.5 rounded border border-slate-700/60">/${cmd.name}</span>
+                    </button>
                 `;
-                container.appendChild(card);
+
+                const btn = li.querySelector('button');
+                btn.addEventListener('click', (e) => {
+                    // ביטול סימון אקטיבי מכל שאר כפתורי הפקודות
+                    listContainer.querySelectorAll('button').forEach(b => {
+                        b.classList.remove('bg-blue-600', 'text-white', 'shadow-lg');
+                        b.classList.add('text-slate-300', 'hover:bg-slate-700/50');
+                    });
+                    
+                    // סימון הכפתור הנוכחי כאקטיבי
+                    e.currentTarget.classList.add('bg-blue-600', 'text-white', 'shadow-lg');
+                    e.currentTarget.classList.remove('hover:bg-slate-700/50');
+
+                    // טעינת הלוגיקה הספציפית של הפקודה למרכז המסך
+                    loadCommandLogic(cmd);
+                });
+
+                listContainer.appendChild(li);
             });
         }
 
-        function loadServerSettings(guildId, guildName) {
-            alert(`טוען הגדרות עבור השרת: ${guildName} (${guildId})`);
-        }
+        // טעינת לוגיקת הפקודה למרכז המסך בהתאם לפקודה שנלחצה
+        function loadCommandLogic(command) {
+            const mainContent = document.getElementById('main-content');
 
-        // document.addEventListener('DOMContentLoaded', loadAdminDashboard);
+            if (command.name === 'spamprotection') {
+                // תוכן דינמי ייעודי עבור פקודת ה-Spam Protection
+                mainContent.innerHTML = `
+                    <div class="max-w-2xl bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl animate-fadeIn">
+                        <div class="flex items-center justify-between border-b border-slate-700 pb-4 mb-6 flex-row-reverse">
+                            <div>
+                                <h2 class="text-2xl font-bold text-white flex items-center gap-2 justify-end">
+                                    הגדרות Spam Protection
+                                    <i class="fas fa-shield-alt text-blue-500"></i>
+                                </h2>
+                                <p class="text-slate-400 text-sm mt-1">${command.description || 'ניהול מערכת הגנת הספאם של השרת'}</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="flex items-center justify-between bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 flex-row-reverse">
+                                <div class="text-right">
+                                    <h4 class="font-semibold text-white">סטטוס פקודה</h4>
+                                    <p class="text-xs text-slate-400">הפעל או כבה את סינון הספאם האוטומטי בשרת</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="spam-toggle" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+
+                            <div class="space-y-2 text-right">
+                                <label class="block text-sm font-semibold text-slate-300">ID של ערוץ לוגים (Log Channel ID)</label>
+                                <input type="text" id="spam-log-channel" placeholder="לדוגמה: 1248501003280449556" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500 text-left font-mono">
+                            </div>
+
+                            <button id="save-spam-settings" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2">
+                                <i class="fas fa-save"></i>
+                                שמור ועדכן שרת
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                // קישור כפתור השמירה לפונקציית ה-API שהכנו בשלב הקודם
+                document.getElementById('save-spam-settings').addEventListener('click', async () => {
+                    const enable = document.getElementById('spam-toggle').checked;
+                    const logChannelId = document.getElementById('spam-log-channel').value.trim();
+                    
+                    if (typeof toggleSpamProtection === 'function') {
+                        await toggleSpamProtection(selectedGuildId, enable, logChannelId);
+                    } else {
+                        alert('פונקציית השמירה לשרת (toggleSpamProtection) עדיין לא הוגדרה.');
+                    }
+                });
+
+            } else {
+                // מסך גנרי לפקודות אחרות שעדיין לא יצרת להן טופס מותאם אישית
+                mainContent.innerHTML = `
+                    <div class="max-w-2xl bg-slate-800 border border-slate-700 rounded-2xl p-12 shadow-xl text-center">
+                        <i class="fas fa-tools text-5xl text-amber-500 mb-4"></i>
+                        <h2 class="text-2xl font-bold text-white mb-2">/${command.name}</h2>
+                        <p class="text-slate-400 mb-6">${command.description || 'אין תיאור זמין לפקודה זו.'}</p>
+                        <div class="inline-block px-4 py-2 bg-slate-900 rounded-lg border border-slate-700 text-sm text-amber-400 font-medium">
+                            הממשק עבור הגדרת פקודה זו נמצא כעת בפיתוח
+                        </div>
+                    </div>
+                `;
+            }
+        }
     </script>
 </body>
 </html>
