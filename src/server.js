@@ -137,13 +137,13 @@ function startWebServer(client) {
         if (!token) {
             return res.status(401).json({ error: 'Missing token' });
         }
-        console.log('in /api/dashboard-data 001' );
+
         try {
             // 1. שליפת השרתים של המשתמש מדיסקורד (מבוצע מהשרת בצורה מאובטחת)
+            console.log('api/dashboard-data 0001');
             const guildsResponse = await fetch('https://discord.com/api/users/@me/guilds', {
                 headers: { authorization: `Bearer ${token}` }
             });
-            console.log('in /api/dashboard-data 003' );
 
             if (!guildsResponse.ok) {
                 return res.status(401).json({ error: 'Invalid token or Discord session expired' });
@@ -153,6 +153,7 @@ function startWebServer(client) {
             const ADMIN_PERMISSION_BIT = 0x8;
 
             // 2. סינון השרתים שבהם המשתמש אדמין/בעלים והבוט נמצא
+            console.log('api/dashboard-data 0002');
             const authorizedGuilds = userGuilds.filter(guild => {
                 const isOwner = guild.owner;
                 const isAdmin = (BigInt(guild.permissions) & BigInt(ADMIN_PERMISSION_BIT)) === BigInt(ADMIN_PERMISSION_BIT);
@@ -161,28 +162,20 @@ function startWebServer(client) {
                 return (isOwner || isAdmin) && isBotInServer;
             });
 
-            // 3. טעינת הפקודות הקיימות בבוט מהתיקיות (מבוסס על הלוגיקה שלך)
+            // 3. משיכת הפקודות ישירות מהזיכרון של הבוט! ללא קריאה מיותרת ומסוכנת מהדיסק
+            console.log('api/dashboard-data 0003');
             const commands = [];
-            const foldersPath = path.join(__dirname, 'commands'); // ודא שהנתיב תואם למבנה הפרויקט שלך
-            console.log('in /api/dashboard-data 003' );
-            if (fs.existsSync(foldersPath)) {
-                const commandFolders = fs.readdirSync(foldersPath);
-                for (const folder of commandFolders) {
-                    const commandsPath = path.join(foldersPath, folder);
-                    if (fs.statSync(commandsPath).isDirectory()) {
-                        const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-                        for (const file of commandFiles) {
-                            const command = require(path.join(commandsPath, file));
-                            if ('data' in command) {
-                                commands.push(command.data.toJSON());
-                            }
-                        }
+            if (client && client.commands) {
+                client.commands.forEach(cmd => {
+                    if (cmd.data) {
+                        // מוודא שהמידע נמשך כראוי בין אם זה SlashCommandBuilder או אובייקט רגיל
+                        commands.push(typeof cmd.data.toJSON === 'function' ? cmd.data.toJSON() : cmd.data);
                     }
-                }
+                });
             }
-            console.log('in /api/dashboard-data 004' );
 
             // 4. החזרת כל המידע המרוכז ל-Frontend קל ונקי
+            console.log('api/dashboard-data 0004');
             res.json({
                 guilds: authorizedGuilds.map(g => ({
                     id: g.id,
@@ -191,10 +184,11 @@ function startWebServer(client) {
                 })),
                 commands: commands
             });
+            console.log('api/dashboard-data 0005');
 
         } catch (error) {
-            console.log('error /api/dashboard-data 004' , error);
             console.error('[API ERROR] Dashboard failed:', error);
+            console.log('ERROR api/dashboard-data error: ', error);
             res.status(500).json({ error: 'Internal Server Error' });
         }
     });
