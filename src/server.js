@@ -29,8 +29,7 @@ function startWebServer(client) {
             });
 
             console.log('--- DEBUG OAUTH2 ---');
-            console.log('BOT_ID:', process.env.BOT_ID);
-            console.log('CLIENT_SECRET exists?:', !!process.env.CLIENT_SECRET);
+            console.log('params :', params.toString());
             console.log('--------------------');
             const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
                 method: 'POST',
