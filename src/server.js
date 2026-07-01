@@ -10,6 +10,11 @@ function startWebServer(client) {
     // 1. הגשת קבצי האתר הסטטיים מתוך תיקיית website
     app.use(express.static(path.join(__dirname, 'website')));
 
+    app.use((req, res, next) => {
+        res.header("Access-Control-Allow-Origin", "*"); // או הכתובת הספציפית שלך
+        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+        next();
+    });
     app.get('/api/auth/discord/redirect', async (req, res) => {
         const code = req.query.code;
         
@@ -82,7 +87,11 @@ function startWebServer(client) {
             res.status(500).send('Server Error during authentication');
         }
     });
-    
+    app.use((req, res, next) => {
+        res.header("Access-Control-Allow-Origin", "*"); // או הכתובת הספציפית שלך
+        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+        next();
+    });
     app.get('/api/user/guilds', async (req, res) => {
         const token = req.headers.authorization;
         if (!token) return res.status(401).json({ error: 'Unauthorized' });
@@ -112,6 +121,11 @@ function startWebServer(client) {
     });
 
     // 3. דוגמה לנתיב API שמשתמש במידע שמגיע מהבוט עצמו
+    app.use((req, res, next) => {
+        res.header("Access-Control-Allow-Origin", "*"); // או הכתובת הספציפית שלך
+        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+        next();
+    });
     app.get('/api/bot-status', (req, res) => {
         if (!client.isReady()) {
             return res.status(503).json({ status: 'Bot is offline' });
@@ -126,12 +140,21 @@ function startWebServer(client) {
     });
 
     // 4. הגשת נתוני ה-Data של הפרויקט
+    app.use((req, res, next) => {
+        res.header("Access-Control-Allow-Origin", "*"); // או הכתובת הספציפית שלך
+        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+        next();
+    });
     app.get('/api/data/guilds', (req, res) => {
         // בעתיד, תוסיף כאן בדיקה שהמשתמש מחובר ויש לו הרשאות מתאימות
         const dataPath = path.join(__dirname, 'data', 'data_guilds.json');
         res.sendFile(dataPath);
     });
-    
+    app.use((req, res, next) => {
+        res.header("Access-Control-Allow-Origin", "*"); // או הכתובת הספציפית שלך
+        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+        next();
+    });
     app.get('/api/dashboard-data', async (req, res) => {
         const token = req.query.token;
         if (!token) {

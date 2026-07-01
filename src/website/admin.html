@@ -115,27 +115,31 @@
 
         async function loadAdminDashboard(token) {
             try {
-                // פנייה לשרת ה-Express שלנו במקום לדיסקורד
+                console.log('Fetching dashboard data with token...');
                 const response = await fetch(`/api/dashboard-data?token=${token}`);
-                console.log('AA 006' );
+                
+                console.log('Response status:', response.status);
+                
                 if (!response.ok) {
-                    throw new Error('Unauthorized or session expired');
+                    // הוספת הדפסת התוכן של השגיאה כדי להבין מה השרת באמת מחזיר
+                    const errorText = await response.text();
+                    console.error('Server error response:', errorText);
+                    throw new Error(`Unauthorized: ${errorText}`);
                 }
 
                 const data = await response.json();
+                console.log('Data received:', data);
 
-                // 1. רינדור השרתים המורשים
                 renderServers(data.guilds);
-
-                // 2. רינדור הפקודות של הבוט בדשבורד
                 renderCommands(data.commands);
-                console.log('AA 007' );
+
             } catch (error) {
                 console.error('Failed to load dashboard:', error);
-                localStorage.removeItem('discord_token');
-                window.location.href = '/'; // זריקה חזרה לעמוד הראשי רק אם באמת יש שגיאה
+                // השארתי את ה-Redirect רק כדי למנוע לופ אינסופי של טעינה
+                // אם אתה רוצה לחקור, תגיב את השורה למטה
+                // window.location.href = '/'; 
             }
-        }
+}
 
         function renderServers(guilds) {
             const container = document.getElementById('servers-container'); // ודא שיש אלמנט כזה ב-HTML שלך
