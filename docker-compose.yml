@@ -16,6 +16,7 @@ services:
       dev: ${dev}
       dudiBOT_ID: ${dudiBOT_ID}
       dudiTOKEN: ${dudiTOKEN}
+      CLIENT_SECRET: ${CLIENT_SECRET}
       # נוסיף משתנה סביבה לפורט של השרת
       PORT: 8084 
     ports:
