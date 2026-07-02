@@ -22,6 +22,7 @@ module.exports = {
 
         const userData = {
             id: userId,
+            username: interaction.user.username,
             birthday: birthdayString, // נשמר כ-DD/MM
             announcedThisYear: false
         };

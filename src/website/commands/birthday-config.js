@@ -12,6 +12,24 @@ export async function render(container, command, guildId) {
     const birthdaySettings = settings.birthdayToast || {};
     const isEnabled = birthdaySettings.enabled || false;
     const currentChannel = birthdaySettings.channel || '';
+    const bdayList = settings.aBirthDayList || [];
+
+    // Sort by month and day of birthday (e.g., "26/11") to show upcoming birthdays first
+    bdayList.sort((a, b) => {
+        const [aD, aM] = a.birthday.split('/').map(Number);
+        const [bD, bM] = b.birthday.split('/').map(Number);
+        return (aM * 100 + aD) - (bM * 100 + bD);
+    });
+
+    const bdayListHtml = bdayList.map(item => {
+        const username = item.username || 'Unknown';
+        return `
+            <div class="flex justify-between text-sm py-1 border-b border-slate-800 last:border-none">
+                <span class="text-white">${username} (${item.birthday})</span>
+                <span class="text-xs text-gray-500">ID: ${item.id ? item.id.substring(0, 10) : 'N/A'}...</span>
+            </div>
+        `;
+    }).join('');
 
     const channelsOptions = channels
         .filter(c => c.type === 0) 
@@ -45,6 +63,13 @@ export async function render(container, command, guildId) {
                 <button id="save-bday" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2">
                     <i class="fas fa-save"></i> Save Settings
                 </button>
+
+                <div class="mt-6 pt-6 border-t border-slate-700/50">
+                    <h3 class="text-lg font-semibold text-white mb-4"><i class="fas fa-list text-pink-500 mr-2"></i>Birthdays List</h3>
+                    <div class="max-h-60 overflow-y-auto space-y-1">
+                        ${bdayListHtml}
+                    </div>
+                </div>
             </div>
         </div>
     `;
