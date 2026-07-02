@@ -43,9 +43,15 @@
 
             <div class="mb-6">
                 <label for="server-select" class="block text-sm font-semibold text-slate-400 mb-2">Select a server to manage</label>
-                <select id="server-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer transition">
-                    <option value="" disabled selected>-- Loading servers... --</option>
-                </select>
+                <div class="flex items-center gap-2">
+                    <select id="server-select" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl p-3 text-white font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer transition">
+                        <option value="" disabled selected>-- Loading servers... --</option>
+                    </select>
+                    <button title="Refresh" onclick="window.location.reload()" class="p-3 bg-slate-900 border border-slate-700 rounded-xl text-white hover:bg-slate-800 transition">
+                        <i class="fas fa-sync"></i>
+                    </button>
+                </div>
+-------
             </div>
             
             <div id="sidebar-commands-section" class="flex-1 overflow-y-auto hidden border-t border-slate-700/50 pt-4">
