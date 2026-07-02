@@ -28,16 +28,16 @@ async function checkBirthdays(guild) {
         if (!birthdayChannel) return;
 
         let dataChanged = false;
-
-        for (let userEntry of guildData.aBirthDayList) {
-            if (userEntry.birthday === todayStr && !userEntry.announcedThisYear) {
-                console.log("BBBBBB  הולדת מזל טוב Birthdays ")
-                await birthdayChannel.send(`🥳 מזל טוב ל- <@${userEntry.id}>! יום הולדת שמח! 🎉`);
-                userEntry.announcedThisYear = true;
-                dataChanged = true;
+        if (guildData.aBirthDayList){
+            for (let userEntry of guildData.aBirthDayList) {
+                if (userEntry.birthday === todayStr && !userEntry.announcedThisYear) {
+                    console.log("BBBBBB  הולדת מזל טוב Birthdays ")
+                    await birthdayChannel.send(`🥳 מזל טוב ל- <@${userEntry.id}>! יום הולדת שמח! 🎉`);
+                    userEntry.announcedThisYear = true;
+                    dataChanged = true;
+                }
             }
         }
-
         if (dataChanged) {
             await setGuildData(guild.id, guildData);
         }
