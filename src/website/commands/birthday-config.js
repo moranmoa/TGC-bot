@@ -99,8 +99,8 @@ export async function render(container, command, guildId) {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
         const userId = document.getElementById('add-user-selector').value;
-        const day = prompt("Enter Day (1-31)");
-        const month = prompt("Enter Month (1-12)");
+        const day = document.getElementById('add-user-day').value;
+        const month = document.getElementById('add-user-month').value;
 
         if (!userId || !day || !month) {
             btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
