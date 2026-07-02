@@ -63,29 +63,29 @@
         </main>
     </div>
 
-    <script>
-        // --- 1. Fix 401: Extract and sync the token immediately upon script load ---
+    <script type="module">
+        // מגדיר אילו פקודות יוצגו בסיידבר ומה השם/אייקון שלהן
+        const ADMIN_COMMANDS = {
+            'spamprotection': { displayName: 'Spam Shield', icon: 'fa-shield-alt' },
+            'kick': { displayName: 'Kick Member', icon: 'fa-user-times' },
+            'birthday-config': { displayName: 'Birthday Config', icon: 'fa-birthday-cake' },
+            'gen-room': { displayName: 'Voice Generator', icon: 'fa-microphone' },
+            'goblin': { displayName: 'Goblin Event', icon: 'fa-ghost' }
+        };
+
         const urlParams = new URLSearchParams(window.location.search);
         const urlToken = urlParams.get('token');
-        
         if (urlToken) {
             localStorage.setItem('discord_token', urlToken);
-            // Clean the URL to keep it without the exposed token
             window.history.replaceState({}, document.title, window.location.pathname);
         }
-        
         const token = localStorage.getItem('discord_token');
-        if (!token) {
-            // If there's no token, redirect to home or login page
-            window.location.href = '/'; 
-        }
+        if (!token) window.location.href = '/';
 
-        // Global variables to store data from the server
         let globalGuilds = [];
         let globalCommands = [];
         let selectedGuildId = null;
 
-        // Auto-run when the DOM is ready
         document.addEventListener('DOMContentLoaded', async () => {
             await loadAdminDashboard(token);
         });
@@ -93,44 +93,22 @@
         async function loadAdminDashboard(authToken) {
             try {
                 const response = await fetch(`/api/dashboard-data?token=${authToken}`);
-                
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        throw new Error('Unauthorized: Invalid token or Discord session expired');
-                    }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
+                if (!response.ok) throw new Error('Failed to load');
                 const data = await response.json();
-                console.log('Data received:', data);
                 
                 globalGuilds = data.guilds || [];
-                globalCommands = data.commands || [];
+                // מסנן רק את הפקודות שמוגדרות במילון ה-ADMIN_COMMANDS
+                globalCommands = (data.commands || []).filter(cmd => ADMIN_COMMANDS[cmd.name]);
 
-                // Render servers into the dropdown
                 renderServersDropdown(globalGuilds);
-
             } catch (error) {
-                console.error('Failed to load dashboard:', error);
-                document.getElementById('main-content').innerHTML = `
-                    <div class="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl max-w-lg mx-auto mt-10 text-center">
-                        <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
-                        <p class="font-semibold">${error.message}</p>
-                    </div>
-                `;
+                console.error(error);
             }
         }
 
-        // Render servers into the Dropdown
         function renderServersDropdown(guilds) {
             const select = document.getElementById('server-select');
-            select.innerHTML = '<option value="" disabled selected>-- Select a server from the list --</option>';
-
-            if (guilds.length === 0) {
-                select.innerHTML = '<option value="" disabled>No managed servers found</option>';
-                return;
-            }
-
+            select.innerHTML = '<option value="" disabled selected>-- Select a server --</option>';
             guilds.forEach(guild => {
                 const option = document.createElement('option');
                 option.value = guild.id;
@@ -138,58 +116,49 @@
                 select.appendChild(option);
             });
 
-            // Listen to dropdown selection changes
             select.addEventListener('change', (e) => {
                 selectedGuildId = e.target.value;
                 handleServerSelection(selectedGuildId);
             });
         }
 
-        // Handle server selection event
         function handleServerSelection(guildId) {
-            // 1. Show the commands section in the sidebar
             document.getElementById('sidebar-commands-section').classList.remove('hidden');
-            
-            // 2. Render the commands list in the sidebar
             renderCommandsSidebar(globalCommands);
-
-            // 3. Update the main content area with instructions
-            const selectedGuild = globalGuilds.find(g => g.id === guildId);
             document.getElementById('main-content').innerHTML = `
                 <div class="h-full flex flex-col justify-center items-center text-slate-500">
                     <i class="fas fa-terminal text-6xl mb-4 text-slate-700"></i>
-                    <p class="text-xl font-medium">Server <strong>${selectedGuild?.name}</strong> selected</p>
-                    <p class="text-sm text-slate-400 mt-1">Select a command from the sidebar to configure it</p>
+                    <p class="text-xl font-medium">Select a command from the sidebar</p>
                 </div>
             `;
         }
 
-        // Render commands list into the sidebar
         function renderCommandsSidebar(commands) {
             const listContainer = document.getElementById('sidebar-commands-list');
             listContainer.innerHTML = '';
 
             commands.forEach(cmd => {
+                const adminConfig = ADMIN_COMMANDS[cmd.name];
                 const li = document.createElement('li');
                 li.innerHTML = `
                     <button class="w-full text-left px-4 py-2.5 rounded-xl text-slate-300 hover:bg-slate-700/50 hover:text-white transition flex items-center justify-between font-medium text-sm">
-                        <span class="font-mono text-xs bg-slate-900/40 px-2 py-0.5 rounded border border-slate-700/60">/${cmd.name}</span>
+                        <div class="flex items-center gap-2">
+                            <i class="fas ${adminConfig.icon} text-slate-400 group-hover:text-white"></i>
+                            <span>${adminConfig.displayName}</span>
+                        </div>
                     </button>
                 `;
 
                 const btn = li.querySelector('button');
                 btn.addEventListener('click', (e) => {
-                    // Remove active styling from all other command buttons
                     listContainer.querySelectorAll('button').forEach(b => {
                         b.classList.remove('bg-blue-600', 'text-white', 'shadow-lg');
                         b.classList.add('text-slate-300', 'hover:bg-slate-700/50');
                     });
-                    
-                    // Add active styling to the clicked button
                     e.currentTarget.classList.add('bg-blue-600', 'text-white', 'shadow-lg');
                     e.currentTarget.classList.remove('hover:bg-slate-700/50');
 
-                    // Load specific command logic into the main screen
+                    // טוען את קובץ ה-JS הספציפי של הפקודה
                     loadCommandLogic(cmd);
                 });
 
@@ -197,71 +166,22 @@
             });
         }
 
-        // Load command logic into the main screen based on the clicked command
-        function loadCommandLogic(command) {
+        async function loadCommandLogic(command) {
             const mainContent = document.getElementById('main-content');
-
-            if (command.name === 'spamprotection') {
-                // Dynamic content specifically for Spam Protection
+            
+            try {
+                // טעינה דינמית של הקובץ מתיקיית website/commands
+                const module = await import(`./commands/${command.name}.js`);
+                if (module.render) {
+                    await module.render(mainContent, command, selectedGuildId);
+                }
+            } catch (error) {
+                console.error(`Failed to load command logic for ${command.name}:`, error);
                 mainContent.innerHTML = `
-                    <div class="max-w-2xl bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl animate-fadeIn">
-                        <div class="flex items-center justify-between border-b border-slate-700 pb-4 mb-6">
-                            <div>
-                                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
-                                    Spam Protection Settings
-                                    <i class="fas fa-shield-alt text-blue-500"></i>
-                                </h2>
-                                <p class="text-slate-400 text-sm mt-1">${command.description || 'Manage the server\'s spam protection system'}</p>
-                            </div>
-                        </div>
-
-                        <div class="space-y-6">
-                            <div class="flex items-center justify-between bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
-                                <div class="text-left">
-                                    <h4 class="font-semibold text-white">Command Status</h4>
-                                    <p class="text-xs text-slate-400">Enable or disable automatic spam filtering on the server</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="spam-toggle" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
-
-                            <div class="space-y-2 text-left">
-                                <label class="block text-sm font-semibold text-slate-300">Log Channel ID</label>
-                                <input type="text" id="spam-log-channel" placeholder="e.g., 1248501003280449556" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500 text-left font-mono">
-                            </div>
-
-                            <button id="save-spam-settings" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2">
-                                <i class="fas fa-save"></i>
-                                Save and Update Server
-                            </button>
-                        </div>
-                    </div>
-                `;
-
-                // Link the save button to the API function 
-                document.getElementById('save-spam-settings').addEventListener('click', async () => {
-                    const enable = document.getElementById('spam-toggle').checked;
-                    const logChannelId = document.getElementById('spam-log-channel').value.trim();
-                    
-                    if (typeof toggleSpamProtection === 'function') {
-                        await toggleSpamProtection(selectedGuildId, enable, logChannelId);
-                    } else {
-                        alert('The server save function (toggleSpamProtection) is not defined yet.');
-                    }
-                });
-
-            } else {
-                // Generic screen for other commands that don't have a custom form yet
-                mainContent.innerHTML = `
-                    <div class="max-w-2xl bg-slate-800 border border-slate-700 rounded-2xl p-12 shadow-xl text-center">
+                    <div class="max-w-2xl bg-slate-800 border border-slate-700 rounded-2xl p-12 shadow-xl text-center mx-auto mt-10">
                         <i class="fas fa-tools text-5xl text-amber-500 mb-4"></i>
-                        <h2 class="text-2xl font-bold text-white mb-2">/${command.name}</h2>
-                        <p class="text-slate-400 mb-6">${command.description || 'No description available for this command.'}</p>
-                        <div class="inline-block px-4 py-2 bg-slate-900 rounded-lg border border-slate-700 text-sm text-amber-400 font-medium">
-                            The interface for configuring this command is currently under development
-                        </div>
+                        <h2 class="text-2xl font-bold text-white mb-2">${ADMIN_COMMANDS[command.name]?.displayName || command.name}</h2>
+                        <p class="text-slate-400 mb-6">The interface for configuring this command is currently under development.</p>
                     </div>
                 `;
             }

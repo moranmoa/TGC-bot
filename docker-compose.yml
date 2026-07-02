@@ -17,6 +17,7 @@ services:
       dudiBOT_ID: ${dudiBOT_ID}
       dudiTOKEN: ${dudiTOKEN}
       CLIENT_SECRET: ${CLIENT_SECRET}
+      REDIRECT_URI: ${REDIRECT_URI}
       # נוסיף משתנה סביבה לפורט של השרת
       PORT: 8084 
     ports:
