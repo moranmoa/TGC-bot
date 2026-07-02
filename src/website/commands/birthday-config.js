@@ -86,7 +86,7 @@ export async function render(container, command, guildId) {
 
                 <div class="mt-6 pt-6 border-t border-slate-700/50">
                     <h3 class="text-lg font-semibold text-white mb-4"><i class="fas fa-list text-pink-500 mr-2"></i>Birthdays List</h3>
-                    <div class="max-h-60 overflow-y-auto space-y-1">
+                        <div id="bday-list-container" class="max-h-60 overflow-y-auto space-y-1">
                         ${bdayListHtml}
                     </div>
                 </div>
@@ -131,6 +131,21 @@ export async function render(container, command, guildId) {
             },
             aBirthDayList: currentList
         });
+
+        const bdayListHtmlUpdate = currentList.map(item => {
+            const username = item.username || 'Unknown';
+            return `
+                <div class="flex justify-between text-sm py-1 border-b border-slate-800 last:border-none">
+                    <span class="text-white">${username} (${item.birthday})</span>
+                    <span class="text-xs text-gray-500">ID: ${item.id ? item.id : 'N/A'}</span>
+                </div>
+            `;
+        }).join('');
+
+        const container = document.getElementById('bday-list-container');
+        if (container) {
+            container.innerHTML = bdayListHtmlUpdate;
+        }
 
         btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
         setTimeout(() => btn.innerHTML = '<i class="fas fa-save"></i>', 2000);
