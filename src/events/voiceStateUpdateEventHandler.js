@@ -74,7 +74,7 @@ module.exports = {
         var index = guildData.aActiveChannels.findIndex(
           (chanel) => chanel.id === newChannel
         );
-        console.log("***** index Channel :", index);
+        // console.log("***** index Channel :", index);
         if (index !== -1) {
           guildData.aActiveChannels[index].users.push(newState.id);
           await setGuildData(guild.id, guildData)

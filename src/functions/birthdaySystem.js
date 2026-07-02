@@ -49,11 +49,11 @@ function activateBirthdaySystem(guild) {
 // בדיקה כל 60 דקות 
 setInterval(() => {
     checkBirthdays(guild);
-    console.log("BBBBBB check Birthdays ")
+    console.log("BBBBBB check Birthdays guild: ",guild.id)
 }, 60 * 60 * 1000);
     
     // הרצה ראשונית מיד בטעינה
-    console.log("BBBBBB first INIT check Birthdays ")
+    console.log("BBBBBB first INIT check Birthdays guild: ",guild.id)
     checkBirthdays(guild);
 }
 

@@ -54,16 +54,12 @@ function startWebServer(client) {
                 return res.status(400).send('Failed to authenticate with Discord.');
             }
             // 2. שליפת השרתים של המשתמש מדיסקורד
-            console.log('--- DEBUG OAUTH2 001 ---');
             const guildsResponse = await fetch('https://discord.com/api/users/@me/guilds', {
                 headers: { authorization: `${tokenData.token_type} ${tokenData.access_token}` }
             });
-            console.log('--- DEBUG OAUTH2 002 ---');
             const userGuilds = await guildsResponse.json();
-            console.log('--- DEBUG OAUTH2 003 ---');
             // 3. סינון השרתים - בדיקה אם הוא אדמין/בעלים והבוט נמצא שם
             const ADMIN_PERMISSION_BIT = 0x8; // ביט הרשאת אדמיניסטרטור בדיסקורד
-            console.log('--- DEBUG OAUTH2 004 ---');
             const authorizedGuilds = userGuilds.filter(guild => {
                 const isOwner = guild.owner;
                 // בדיקת ביטים: האם הרשאת אדמין קיימת בתוך מחרוזת ההרשאות של השרת
@@ -73,17 +69,13 @@ function startWebServer(client) {
 
                 return (isOwner || isAdmin) && isBotInServer;
             });
-            console.log('--- DEBUG OAUTH2 005 ---');
 
             // 4. אם אין לו אף שרת שהוא אדמין בו והבוט נמצא שם - חסום גישה
             if (authorizedGuilds.length === 0) {
                 return res.status(403).send('Access Denied: You do not manage any servers that utilize this bot.');
             }
-            console.log('--- DEBUG OAUTH2 006 ---');
             // 5. העברה למסך האדמין יחד עם ה-Token כדי שהדפדפן יוכל למשוך נתונים
             res.redirect(`/admin.html?token=${tokenData.access_token}`);
-            console.log('--- DEBUG OAUTH2 007 ---');
-
 
         } catch (error) {
             console.error('OAuth Error:', error);
@@ -167,7 +159,6 @@ function startWebServer(client) {
 
         try {
             // 1. שליפת השרתים של המשתמש מדיסקורד (מבוצע מהשרת בצורה מאובטחת)
-            console.log('api/dashboard-data 0001');
             const guildsResponse = await fetch('https://discord.com/api/users/@me/guilds', {
                 headers: { authorization: `Bearer ${token}` }
             });
@@ -180,7 +171,6 @@ function startWebServer(client) {
             const ADMIN_PERMISSION_BIT = 0x8;
 
             // 2. סינון השרתים שבהם המשתמש אדמין/בעלים והבוט נמצא
-            console.log('api/dashboard-data 0002');
             const authorizedGuilds = userGuilds.filter(guild => {
                 const isOwner = guild.owner;
                 const isAdmin = (BigInt(guild.permissions) & BigInt(ADMIN_PERMISSION_BIT)) === BigInt(ADMIN_PERMISSION_BIT);
@@ -190,7 +180,6 @@ function startWebServer(client) {
             });
 
             // 3. משיכת הפקודות ישירות מהזיכרון של הבוט! ללא קריאה מיותרת ומסוכנת מהדיסק
-            console.log('api/dashboard-data 0003');
             const commands = [];
             if (client && client.commands) {
                 client.commands.forEach(cmd => {
@@ -202,7 +191,6 @@ function startWebServer(client) {
             }
 
             // 4. החזרת כל המידע המרוכז ל-Frontend קל ונקי
-            console.log('api/dashboard-data 0004');
             res.json({
                 guilds: authorizedGuilds.map(g => ({
                     id: g.id,
@@ -211,7 +199,6 @@ function startWebServer(client) {
                 })),
                 commands: commands
             });
-            console.log('api/dashboard-data 0005');
 
         } catch (error) {
             console.error('[API ERROR] Dashboard failed:', error);
