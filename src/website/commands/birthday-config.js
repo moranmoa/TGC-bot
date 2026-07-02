@@ -26,7 +26,7 @@ export async function render(container, command, guildId) {
         return `
             <div class="flex justify-between text-sm py-1 border-b border-slate-800 last:border-none">
                 <span class="text-white">${username} (${item.birthday})</span>
-                <span class="text-xs text-gray-500">ID: ${item.id ? item.id.substring(0, 10) : 'N/A'}...</span>
+                        <span class="text-xs text-gray-500">ID: ${item.id ? item.id : 'N/A'}</span>
             </div>
         `;
     }).join('');
