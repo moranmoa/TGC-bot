@@ -25,9 +25,29 @@ export async function getGuildChannels(guildId) {
 // -- הפונקציות החדשות לפעולות אקטיביות --
 
 export async function getGuildMembers(guildId) {
+    const cacheKey = `guild_members_${guildId}`;
+    const cachedData = localStorage.getItem(cacheKey);
+
+    if (cachedData) {
+        const parsed = JSON.parse(cachedData);
+        const now = Date.now();
+        // Check if data is less than 1 hour old (3600000 ms)
+        if (now - parsed.timestamp < 3600000) {
+            return parsed.data;
+        }
+    }
+
     const res = await fetch(`/api/guilds/${guildId}/members?token=${getToken()}`);
     if (!res.ok) return [];
-    return await res.json();
+    const data = await res.json();
+
+    // Save to local storage with current timestamp
+    localStorage.setItem(cacheKey, JSON.stringify({
+        data: data,
+        timestamp: Date.now()
+    }));
+
+    return data;
 }
 
 export async function kickMember(guildId, userId) {
