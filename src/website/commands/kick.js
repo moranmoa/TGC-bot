@@ -17,7 +17,7 @@ export async function render(container, command, guildId) {
             <h2 class="text-2xl font-bold text-red-400 mb-6"><i class="fas fa-user-times mr-2"></i> Kick Member</h2>
             
             <div class="space-y-4 mb-6">
-                <div class="space-y-2">
+                <div class="space-y-2 relative">
                     <label class="block text-sm font-semibold text-slate-300">Select User to Kick</label>
                     <input 
                         id="kick-user" 
@@ -26,7 +26,7 @@ export async function render(container, command, guildId) {
                         class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-red-500"
                         autocomplete="off"
                     />
-                    <div id="kick-user-results" class="absolute z-10 w-full bg-slate-900 border border-slate-700 rounded-lg mt-1 overflow-hidden max-h-60 overflow-y-auto shadow-2xl"></div>
+                    <div id="kick-user-results" class="absolute z-10 w-full hidden bg-slate-900 border border-slate-700 rounded-lg mt-1 overflow-hidden max-h-60 overflow-y-auto shadow-2xl"></div>
                 </div>
             </div>
 
