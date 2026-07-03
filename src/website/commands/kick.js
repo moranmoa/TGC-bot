@@ -10,9 +10,7 @@ export async function render(container, command, guildId) {
         console.error("Could not fetch members");
     }
 
-    const membersOptions = members
-        .map(m => `<option value="${m.id}">${m.username}</option>`)
-        .join('');
+    // Sorted list of members for the autocomplete search
 
     container.innerHTML = `
         <div class="max-w-2xl border border-red-500/30 bg-red-950/20 rounded-2xl p-6 shadow-xl animate-fadeIn mx-auto mt-10">
@@ -21,10 +19,14 @@ export async function render(container, command, guildId) {
             <div class="space-y-4 mb-6">
                 <div class="space-y-2">
                     <label class="block text-sm font-semibold text-slate-300">Select User to Kick</label>
-                    <select id="kick-user" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-red-500">
-                        <option value="">-- Choose Member --</option>
-                        ${membersOptions}
-                    </select>
+                    <input 
+                        id="kick-user" 
+                        type="text" 
+                        placeholder="Type to search for a member..." 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-red-500"
+                        autocomplete="off"
+                    />
+                    <div id="kick-user-results" class="absolute z-10 w-full bg-slate-900 border border-slate-700 rounded-lg mt-1 overflow-hidden max-h-60 overflow-y-auto shadow-2xl"></div>
                 </div>
             </div>
 
@@ -35,12 +37,53 @@ export async function render(container, command, guildId) {
         </div>
     `;
 
+    const inputField = document.getElementById('kick-user');
+    const resultsDiv = document.getElementById('kick-user-results');
+    const sortedMembers = [...members].sort((a, b) => a.username.localeCompare(b.username));
+
+    inputField.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        if (!query) {
+            resultsDiv.innerHTML = '';
+            resultsDiv.classList.add('hidden');
+            return;
+        }
+
+        const filtered = sortedMembers.filter(m => m.username.toLowerCase().includes(query));
+        
+        if (filtered.length > 0) {
+            resultsDiv.innerHTML = filtered
+                .map(m => `<div class="p-2 hover:bg-red-900/40 cursor-pointer border-b border-slate-800 last:border-none" data-id="${m.id}">${m.username}</div>`)
+                .join('');
+            resultsDiv.classList.remove('hidden');
+        } else {
+            resultsDiv.classList.add('hidden');
+        }
+    });
+
+    // Close results if clicking outside
+    document.addEventListener('click', (e) => {
+        if (!inputField.contains(e.target)) {
+            resultsDiv.classList.add('hidden');
+        }
+    });
+
+    // Select user from list
+    resultsDiv.addEventListener('click', (e) => {
+        const item = e.target.closest('div');
+        if (item) {
+            inputField.value = item.innerText; // Set visible name
+            inputField.dataset.id = item.getAttribute('data-id'); // Store actual ID
+            resultsDiv.classList.add('hidden');
+        }
+    });
+
     document.getElementById('execute-kick').addEventListener('click', async (e) => {
         const btn = e.currentTarget;
-        const userId = document.getElementById('kick-user').value;
+        const userId = inputField.dataset.id || inputField.value; // Fallback to value if no specific ID was selected from list
         const statusDiv = document.getElementById('kick-status');
         
-        if (!userId) return alert('Select a user first');
+        if (!userId || userId === "") return alert('Select a user first');
         
         if (!confirm('Are you sure you want to kick this user?')) return;
 
