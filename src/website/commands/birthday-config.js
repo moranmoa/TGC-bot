@@ -1,4 +1,5 @@
 import { getGuildSettings, getGuildChannels, saveGuildSettings, getGuildMembers } from '../utils/api.js';
+import { createAutocompleteInput } from '../components/AutocompleteInput.js';
 
 export async function render(container, command, guildId) {
     container.innerHTML = `<div class="flex justify-center items-center h-full text-blue-500"><i class="fas fa-spinner fa-spin text-4xl"></i></div>`;
@@ -13,7 +14,7 @@ export async function render(container, command, guildId) {
     const birthdaySettings = settings.birthdayToast || {};
     const isEnabled = birthdaySettings.enabled || false;
     const currentChannel = birthdaySettings.channel || '';
-    const bdayList = settings.aBirthDayList || [];
+    let bdayList = settings.aBirthDayList || [];
 
     const memberOptions = members
         .map(m => `<option value="${m.id}">${m.username || 'Unknown'}</option>`)
@@ -68,10 +69,9 @@ export async function render(container, command, guildId) {
                 <div class="space-y-2 bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
                     <label class="block text-sm font-semibold text-slate-300">Add / Edit User Birthday</label>
                     <div class="flex gap-2 items-center">
-                        <select id="add-user-selector" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-pink-500">
-                            <option value="">-- Select User --</option>
-                            ${memberOptions}
-                        </select>
+                        <div class="space-y-4 mb-6">
+                            <div id="add-user-selector" class="space-y-2 relative"></div>
+                        </div>
                         <input type="number" id="add-user-day" placeholder="Day (1-31)" class="w-20 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-pink-500">
                         <input type="number" id="add-user-month" placeholder="Month (1-12)" class="w-20 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-pink-500">
                         <button id="add-user-save" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2.5 rounded-xl transition flex items-center justify-center">
@@ -93,12 +93,21 @@ export async function render(container, command, guildId) {
             </div>
         </div>
     `;
+    const autocomplete = createAutocompleteInput(
+        document.getElementById('add-user-selector'),
+        { 
+            id: 'add-user', 
+            placeholder: "Type to search for a member...", 
+            label: 'Select User', 
+            items: members 
+        }
+    );
 
     document.getElementById('add-user-save').addEventListener('click', async (e) => {
         const btn = e.currentTarget;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-
-        const userId = document.getElementById('add-user-selector').value;
+        const userId = autocomplete.getSelectedId();
+        // const userId = document.getElementById('add-user-selector').value;
         const day = document.getElementById('add-user-day').value;
         const month = document.getElementById('add-user-month').value;
 
@@ -111,7 +120,7 @@ export async function render(container, command, guildId) {
         const birthdayString = `${day.padStart(2, '0')}/${month.padStart(2, '0')}`;
         const userData = {
             id: userId,
-            username: document.getElementById('add-user-selector').options[document.getElementById('add-user-selector').selectedIndex].text,
+            username: autocomplete.inputField.value,
             birthday: birthdayString,
             announcedThisYear: false
         };
@@ -131,6 +140,7 @@ export async function render(container, command, guildId) {
             },
             aBirthDayList: currentList
         });
+        bdayList = currentList
 
         const bdayListHtmlUpdate = currentList.map(item => {
             const username = item.username || 'Unknown';
