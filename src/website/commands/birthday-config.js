@@ -160,7 +160,8 @@ export async function render(container, command, guildId) {
             },
             aBirthDayList: currentList
         });
-        bdayList = sortlist(currentList);
+        currentList = sortlist(currentList);
+        bdayList = currentList
 
         const bdayListHtmlUpdate = currentList.map(item => {
             const username = item.username || 'Unknown';
