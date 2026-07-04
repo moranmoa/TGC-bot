@@ -21,11 +21,31 @@ export async function render(container, command, guildId) {
         .join('');
 
     // Sort by month and day of birthday (e.g., "26/11") to show upcoming birthdays first
-    bdayList.sort((a, b) => {
-        const [aD, aM] = a.birthday.split('/').map(Number);
-        const [bD, bM] = b.birthday.split('/').map(Number);
-        return (aM * 100 + aD) - (bM * 100 + bD);
-    });
+    bdayList = sortlist(bdayList);
+    // bdayList.sort((a, b) => {
+    //     const [aD, aM] = a.birthday.split('/').map(Number);
+    //     const [bD, bM] = b.birthday.split('/').map(Number);
+    //     return (aM * 100 + aD) - (bM * 100 + bD);
+    // });
+
+    // const now = new Date();
+    // const todayVal = (now.getMonth() + 1) * 100 + now.getDate();
+    // let targetIndex = bdayList.findIndex(item => {
+    //     const [bD, bM] = item.birthday.split('/').map(Number);
+    //     return (bM * 100 + bD) === todayVal;
+    // });
+
+    // if (targetIndex === -1) {
+    //     targetIndex = bdayList.findIndex((item, i) => {
+    //         const [bD, bM] = item.birthday.split('/').map(Number);
+    //         return (bM * 100 + bD) > todayVal;
+    //     });
+    // }
+
+    // if (targetIndex === -1) targetIndex = 0;
+    // if (targetIndex){
+    //     bdayList = [...bdayList.slice(targetIndex), ...bdayList.slice(0, targetIndex)];
+    // }
 
     const bdayListHtml = bdayList.map(item => {
         const username = item.username || 'Unknown';
@@ -140,7 +160,7 @@ export async function render(container, command, guildId) {
             },
             aBirthDayList: currentList
         });
-        bdayList = currentList
+        bdayList = sortlist(currentList);
 
         const bdayListHtmlUpdate = currentList.map(item => {
             const username = item.username || 'Unknown';
@@ -176,4 +196,32 @@ export async function render(container, command, guildId) {
         btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
         setTimeout(() => btn.innerHTML = '<i class="fas fa-save"></i> Save Settings', 2000);
     });
+    
+    function sortlist(bdayList) {
+        bdayList.sort((a, b) => {
+            const [aD, aM] = a.birthday.split('/').map(Number);
+            const [bD, bM] = b.birthday.split('/').map(Number);
+            return (aM * 100 + aD) - (bM * 100 + bD);
+        });
+
+        const now = new Date();
+        const todayVal = (now.getMonth() + 1) * 100 + now.getDate();
+        let targetIndex = bdayList.findIndex(item => {
+            const [bD, bM] = item.birthday.split('/').map(Number);
+            return (bM * 100 + bD) === todayVal;
+        });
+
+        if (targetIndex === -1) {
+            targetIndex = bdayList.findIndex((item, i) => {
+                const [bD, bM] = item.birthday.split('/').map(Number);
+                return (bM * 100 + bD) > todayVal;
+            });
+        }
+
+        if (targetIndex === -1) targetIndex = 0;
+        if (targetIndex){
+            bdayList = [...bdayList.slice(targetIndex), ...bdayList.slice(0, targetIndex)];
+        }
+        return bdayList;
+    }
 }
