@@ -6,6 +6,7 @@ const { getGuildData, setGuildData } = require('./events/activityUtils');
 function startWebServer(client) {
     const app = express();
     const PORT = process.env.PORT || 8084;
+    const DEVELOPER_IDS = [ process.env.YOUR_DISCORD_ID_HERE, process.env.ANOTHER_DEV_ID]; 
 
     // --- הוספת תמיכה בפענוח JSON מתוך בקשות POST ---
     app.use(express.json());
@@ -405,6 +406,44 @@ function startWebServer(client) {
         } catch (error) {
             console.error('[API] Error deleting room:', error);
             res.status(500).json({ error: 'Failed to delete room' });
+        }
+    });
+
+    // הוסף את השורה הזו למעלה - הכנס לכאן את ה-ID שלך בדיסקורד (ואת של הצוות שלך)
+    
+
+    // הוסף את הראוט הזה בתוך הפונקציה startWebServer (ליד שאר הראוטים)
+    app.get('/api/admin/bot-guilds', async (req, res) => {
+        const token = req.query.token;
+        if (!token) return res.status(401).json({ error: 'No token provided' });
+
+        try {
+            // 1. פנייה לדיסקורד כדי לגלות מי המשתמש שעומד מאחורי הטוקן הזה
+            const userRes = await fetch('https://discord.com/api/users/@me', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            if (!userRes.ok) return res.status(401).json({ error: 'Invalid token' });
+            const userData = await userRes.json();
+            
+            // 2. בדיקת הרשאות מול רשימת המפתחים שלנו
+            if (!DEVELOPER_IDS.includes(userData.id)) {
+                return res.status(403).json({ error: 'Access Denied. Developers only.' });
+            }
+
+            // 3. שליפת השרתים ישירות מהזיכרון של הבוט (לא מה-Data השמור)
+            // מסננים ומוציאים רק את המידע הרלוונטי כדי לא לשלוח נתונים כבדים מדי ל-Web
+            const botGuilds = client.guilds.cache.map(guild => ({
+                id: guild.id,
+                name: guild.name,
+                icon: guild.iconURL({ dynamic: true, size: 64 }),
+                memberCount: guild.memberCount
+            }));
+
+            res.json(botGuilds);
+        } catch (error) {
+            console.error('Error fetching admin guilds:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
         }
     });
 

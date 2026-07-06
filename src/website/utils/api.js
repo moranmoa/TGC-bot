@@ -82,3 +82,15 @@ export async function deleteVoiceRoom(guildId, channelId) {
     if (!res.ok) throw new Error('Failed to delete voice room');
     return await res.json();
 }
+
+export async function getAdminBotGuilds() {
+    const res = await fetch(`/api/admin/bot-guilds?token=${getToken()}`);
+    
+    // טיפול במצב שבו למשתמש אין גישה למסך הזה
+    if (res.status === 403) {
+        throw new Error('FORBIDDEN');
+    }
+    
+    if (!res.ok) throw new Error('Failed to fetch bot guilds');
+    return await res.json();
+}

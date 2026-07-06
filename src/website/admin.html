@@ -76,7 +76,8 @@
             'kick': { displayName: 'Kick Member', icon: 'fa-user-times' },
             'birthday-config': { displayName: 'Birthday Config', icon: 'fa-birthday-cake' },
             'gen-room': { displayName: 'Voice Generator', icon: 'fa-microphone' },
-            'goblin': { displayName: 'Goblin Event', icon: 'fa-ghost' }
+            'goblin': { displayName: 'Goblin Event', icon: 'fa-ghost' },
+            'guild_list': { displayName: 'Guild List', icon: 'fa-users' }
         };
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -105,6 +106,10 @@
                 globalGuilds = data.guilds || [];
                 // מסנן רק את הפקודות שמוגדרות במילון ה-ADMIN_COMMANDS
                 globalCommands = (data.commands || []).filter(cmd => ADMIN_COMMANDS[cmd.name]);
+                globalCommands.unshift({
+                    name: 'guild_list',
+                    description: 'Manage and view all bot guilds'
+                });
 
                 renderServersDropdown(globalGuilds);
             } catch (error) {

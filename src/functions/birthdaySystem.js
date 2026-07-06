@@ -22,7 +22,7 @@ async function checkBirthdays(guild) {
     
     // בדיקת שעה (סביב 12 בצהריים)
     const currentHour = now.getHours();
-    console.log("BBBBBB בדיקת שעה (סביב 12 בצהריים)  Birthdays ",currentHour)
+    console.log("BBBBBB בדיקת שעה (סביב 12 בצהריים)  Birthdays current Hour is:",currentHour)
     if (currentHour >= 12 && currentHour <= 15) {
         const birthdayChannel = guild.channels.cache.get(guildData.birthdayToast.channel);
         if (!birthdayChannel) return;

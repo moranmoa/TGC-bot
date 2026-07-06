@@ -18,6 +18,8 @@ services:
       dudiTOKEN: ${dudiTOKEN}
       CLIENT_SECRET: ${CLIENT_SECRET}
       REDIRECT_URI: ${REDIRECT_URI}
+      YOUR_DISCORD_ID_HERE: ${YOUR_DISCORD_ID_HERE}
+      ANOTHER_DEV_ID: ${ANOTHER_DEV_ID}
       # נוסיף משתנה סביבה לפורט של השרת
       PORT: 8084 
     ports:
