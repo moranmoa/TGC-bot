@@ -2,6 +2,14 @@ require("dotenv").config();
 const fs = require("node:fs");
 const path = require("node:path");
 
+// רשת ביטחון: שגיאה לא-מטופלת ב-handler בודד לא תפיל את כל הבוט בפרודקשן
+process.on("unhandledRejection", (reason) => {
+  console.error("[UNHANDLED REJECTION]", reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("[UNCAUGHT EXCEPTION]", err);
+});
+
 const {
   Client,
   IntentsBitField,

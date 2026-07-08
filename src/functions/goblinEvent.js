@@ -45,6 +45,11 @@ async function goblinEvent(guild) {
             
             usedIndices.add(randomIndex);
             const voiceChannel = guild.channels.cache.get(guildData.aActiveChannels[randomIndex].id);
+            // הערוץ עלול להימחק בזמן ההשהיה - מדלגים אם הוא כבר לא קיים
+            if (!voiceChannel) {
+                console.log("goblin Event: channel no longer exists, skipping");
+                return;
+            }
 
             let url = '../audio/' + await selectSound("all");
             await playInChannel(url, voiceChannel);
@@ -57,6 +62,10 @@ async function goblinEvent(guild) {
 async function playInChannel(url, voiceChannel) {
     // Join the voice channel
     console.log("goblin Event playInChannel")
+    if (!voiceChannel) {
+        console.log("goblin Event playInChannel: no voice channel, aborting");
+        return;
+    }
     let guild = voiceChannel.guild
     const connection = joinVoiceChannel({
         channelId: voiceChannel.id,

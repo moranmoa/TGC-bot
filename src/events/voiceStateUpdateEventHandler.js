@@ -1,6 +1,6 @@
 const { Events, ChannelType, VoiceChannel } = require("discord.js");
 const path = require("node:path");
-const { getActivityName ,whatName ,getGuildData ,setGuildData} = require('./activityUtils');
+const { getActivityName ,whatName ,getGuildData ,setGuildData ,withGuildLock} = require('./activityUtils');
 // var aActiveChannels = [];
 // aActiveChannels [
 //   {id:"001",
@@ -18,6 +18,10 @@ module.exports = {
   name: Events.VoiceStateUpdate,
   async execute(oldState, newState, client) {
     const guild = oldState?.guild ?? newState?.guild;
+    if (!guild) return;
+    // מנעול per-guild: מסדר את כל מחזור הקריאה-שינוי-כתיבה כך שאירועי voice
+    // מקבילים על אותו שרת לא ידרסו זה את עדכוני זה
+    await withGuildLock(guild.id, async () => {
     var guildData = await getGuildData(guild.id);
     // guildData.rootChannelId = ["1012355807209332820"]
     // await setGuildData(guild.id, guildData)
@@ -102,7 +106,7 @@ module.exports = {
                 .then(console.log)
                 .catch(console.error);
               }catch(e){
-                onsole.log("***** error ", e);
+                console.log("***** error ", e);
               }
                 guildData.aActiveChannels.splice(index, 1);
                 await setGuildData(guild.id, guildData)
@@ -132,5 +136,6 @@ module.exports = {
         }
       }
     }
+    });
   },
 };

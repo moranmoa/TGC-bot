@@ -4,6 +4,51 @@ const fs = require('fs').promises;
 
 const dataDirPath = process.env.APP_ENV === 'DEV' ? path.join(__dirname, '..', 'data') : '/app/data';
 
+// ---------------------------------------------------------------------------
+// שכבת גישה לנתונים בטוחה מפני מרוצי-תנאים (race conditions)
+// ---------------------------------------------------------------------------
+
+// מנעול גנרי per-key: משרשר פעולות אסינכרוניות שנוגעות באותו מפתח כך שהן לא ירוצו
+// בחפיפה. משמש גם לסדר קריאה-שינוי-כתיבה per-guild וגם לסדר כתיבה per-file.
+const locks = new Map();
+function withLock(key, fn) {
+    const prev = locks.get(key) || Promise.resolve();
+    const run = prev.then(() => fn(), () => fn());
+    // שומרים על השרשרת אבל בולעים דחיות כדי שכשל אחד לא ירעיל את המנעול
+    locks.set(key, run.then(() => {}, () => {}));
+    return run;
+}
+
+// מנעול per-guild למחזור קריאה-שינוי-כתיבה שלם (מפתח נפרד ממנעול הקובץ -> אין deadlock).
+function withGuildLock(guildId, fn) {
+    return withLock('guild:' + String(guildId), fn);
+}
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// כתיבה אטומית ומסודרת: כותבים לקובץ זמני ואז rename (אטומי במערכת הקבצים, כך שקוראים
+// לעולם לא רואים קובץ חלקי). מסדר את כל הכתיבות לאותו קובץ במנעול per-path כדי למנוע
+// rename מקבילים (שגורמים ל-EPERM בווינדוס), עם retry קטן לנעילות רגעיות (אנטי-וירוס וכו').
+let tmpCounter = 0;
+async function atomicWriteFile(filePath, contents) {
+    return withLock('file:' + filePath, async () => {
+        const tmpPath = `${filePath}.${process.pid}.${tmpCounter++}.tmp`;
+        await fs.writeFile(tmpPath, contents);
+        for (let attempt = 1; ; attempt++) {
+            try {
+                await fs.rename(tmpPath, filePath);
+                return;
+            } catch (err) {
+                if ((err.code === 'EPERM' || err.code === 'EACCES') && attempt < 5) {
+                    await sleep(20 * attempt);
+                    continue;
+                }
+                await fs.unlink(tmpPath).catch(() => {});
+                throw err;
+            }
+        }
+    });
+}
 
 async function getGuildData(guildId) {
     try {
@@ -13,22 +58,40 @@ async function getGuildData(guildId) {
         // console.log("* Guild Data * :",guildId,data)
         return data;
     } catch (err) {
-        console.error('**@@@@@ Error @@@ Error @@@ Error @@@@@@****** Error reading or parsing file *******\n change the TODO run in docker or local \n', err);
+        // קובץ שעדיין לא קיים = מצב תקין בקריאה ראשונה של שרת; לא מרעישים על זה.
+        // רק שגיאות אמת (קובץ פגום / JSON לא תקין) ראויות ללוג.
+        if (err.code !== 'ENOENT') {
+            console.error('Error reading/parsing guild data file for guildId', guildId, err);
+        }
         return {"aActiveChannels":[],"rootChannelId":[]};
     }
 }
 async function setGuildData(guildId, data) {
-    // Convert JSON object to string
     const jsonData = JSON.stringify(data, null, 2);
-
     try {
         const filePath = path.join(dataDirPath, `data_${guildId}.json`);
-        // Write JSON string to a file
-       await fs.writeFile(filePath, jsonData);
-        console.log('@@@@@@@@@@ data for guildId :',guildId ,"\n", jsonData);
+        await atomicWriteFile(filePath, jsonData);
     } catch (err) {
-        console.error('**@@@@@ Error @@@ Error @@@ Error @@@@****** Error writing to file **@@@@@@@@@@@@@@@@****** \n change the TODO run in docker or local \m', err);
+        console.error('Error writing guild data file for guildId', guildId, err);
     }
+}
+
+// קריאה-שינוי-כתיבה אטומית תחת מנעול. ה-mutator מקבל את הנתונים הנוכחיים,
+// משנה אותם (או מחזיר אובייקט חדש), והתוצאה נכתבת בבטחה. זו הדרך המומלצת
+// לעדכן נתוני שרת מתוך handlers שרצים במקביל.
+async function updateGuildData(guildId, mutator) {
+    return withGuildLock(guildId, async () => {
+        const data = await getGuildData(guildId);
+        const result = await mutator(data);
+        const toWrite = result === undefined ? data : result;
+        try {
+            const filePath = path.join(dataDirPath, `data_${guildId}.json`);
+            await atomicWriteFile(filePath, JSON.stringify(toWrite, null, 2));
+        } catch (err) {
+            console.error('Error writing guild data file for guildId', guildId, err);
+        }
+        return toWrite;
+    });
 }
 
 async function getMessagesData(guildId) {
@@ -45,7 +108,7 @@ async function setMessagesData(guildId, data) {
     const jsonData = JSON.stringify(data, null, 2);
     try {
         const filePath = path.join(dataDirPath, `data_${guildId}_messages.json`);
-        await fs.writeFile(filePath, jsonData);
+        await atomicWriteFile(filePath, jsonData);
     } catch (err) {
         console.error('Error writing messages data:', err);
     }
@@ -93,44 +156,4 @@ function getActivityName(User) {
     }
   }
 
-  function updateChannelName(voiceChannel, guildData, newName ) {
-    //not tested !!
-    // dont works
-    const channel = guildData.aActiveChannels.find(c => c.id === voiceChannel.id);
-    if (!channel) {
-        return;
-    }
-    const now = Date.now();
-    if (channel.names.fifo.length >= 2) {
-        const timeDiff = now - channel.names.fifo[0].time;
-        const tenMinutes = 10 * 60 * 1000; //10min
-        if (timeDiff < tenMinutes) {
-            const remainingTime = tenMinutes - timeDiff;
-            channel.names.fifo[2] = { name: newName.name, time: now + remainingTime };
-            console.log("--updateChannelName ",channel , newName )
-            if (!channel.names.timeoutId) {
-                channel.names.timeoutId = setTimeout(() => {
-                    console.log("--updateChannelName setTimeout 1",channel , newName )
-                    channel.names.active = { name: channel.names.fifo[2].name, type: fifo[2].type };
-                    channel.names.timeoutId = null;
-                    if (channel.names.fifo.length > 2) {
-                        channel.names.fifo.shift();
-                    }
-                    console.log("--updateChannelName setTimeout 2",channel , newName )
-                }, remainingTime);
-                channel.names.timeoutId = true;
-            }
-        } else {
-            channel.names.active = { name: newName.name, type: newName.type };
-            channel.names.fifo[2] = { name: newName.name, time: now ,type: newName.type};
-            channel.names.fifo.shift();
-            console.log("--updateChannelName ",channel , newName )
-        }
-    } else {
-        channel.names.active = { name: newName.name, type: newName.type };
-        channel.names.fifo.push({ name: newName.name, time: now ,type: newName.type});
-        console.log("--updateChannelName ",channel , newName )
-    }
-}
-
-  module.exports = {getActivityName ,whatName, getGuildData ,setGuildData, getMessagesData, setMessagesData, updateChannelName};
+  module.exports = {getActivityName ,whatName, getGuildData ,setGuildData, updateGuildData, withGuildLock, getMessagesData, setMessagesData};

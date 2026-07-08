@@ -99,7 +99,7 @@
 
         async function loadAdminDashboard(authToken) {
             try {
-                const response = await fetch(`/api/dashboard-data?token=${authToken}`);
+                const response = await fetch(`/api/dashboard-data`, { headers: { 'Authorization': authToken } });
                 if (!response.ok) throw new Error('Failed to load');
                 const data = await response.json();
                 

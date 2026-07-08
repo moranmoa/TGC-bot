@@ -11,14 +11,95 @@ function startWebServer(client) {
     // --- הוספת תמיכה בפענוח JSON מתוך בקשות POST ---
     app.use(express.json());
 
+    // --- CORS (מקור אחד; ה-origin ניתן להגדרה דרך משתנה סביבה) ---
+    const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
+    app.use((req, res, next) => {
+        res.header("Access-Control-Allow-Origin", CORS_ORIGIN);
+        res.header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+        if (req.method === "OPTIONS") return res.sendStatus(204);
+        next();
+    });
+
     // 1. הגשת קבצי האתר הסטטיים מתוך תיקיית website
     app.use(express.static(path.join(__dirname, 'website')));
 
-    app.use((req, res, next) => {
-        res.header("Access-Control-Allow-Origin", "*"); // או הכתובת הספציפית שלך
-        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-        next();
-    });
+    const ADMIN_PERMISSION_BIT = 0x8; // ביט הרשאת אדמיניסטרטור בדיסקורד
+
+    // חילוץ ה-access token של דיסקורד מהבקשה (query param כפי שהדשבורד שולח,
+    // או Authorization header כגיבוי). מחזיר את הטוקן הגולמי ללא קידומת "Bearer ".
+    function getTokenFromRequest(req) {
+        let token = req.query.token;
+        if (!token && req.headers.authorization) {
+            token = req.headers.authorization.replace(/^Bearer\s+/i, "");
+        }
+        return token || null;
+    }
+
+    // מטמון קטן בזיכרון כדי לא לפנות ל-API של דיסקורד בכל בקשה (ולהיחסם ב-rate limit).
+    // ממופתח לפי טוקן, פג תוקף אחרי 60 שניות.
+    const guildsCache = new Map();
+    async function fetchUserGuilds(token) {
+        const cached = guildsCache.get(token);
+        if (cached && (Date.now() - cached.time) < 60 * 1000) {
+            return cached.guilds;
+        }
+        const resp = await fetch("https://discord.com/api/users/@me/guilds", {
+            headers: { authorization: `Bearer ${token}` }
+        });
+        if (!resp.ok) {
+            const err = new Error("discord_unauthorized");
+            err.status = resp.status === 401 ? 401 : 502;
+            throw err;
+        }
+        const guilds = await resp.json();
+        guildsCache.set(token, { guilds, time: Date.now() });
+        return guilds;
+    }
+
+    // Middleware: מחייב טוקן דיסקורד תקין (מזהה את הפונה).
+    async function requireAuth(req, res, next) {
+        const token = getTokenFromRequest(req);
+        if (!token) return res.status(401).json({ error: "Unauthorized: missing token" });
+        try {
+            await fetchUserGuilds(token);
+            req.discordToken = token;
+            next();
+        } catch (err) {
+            const status = err.status === 401 ? 401 : 502;
+            res.status(status).json({ error: status === 401 ? "Invalid or expired token" : "Failed to verify token with Discord" });
+        }
+    }
+
+    // Middleware: מחייב שהפונה יהיה owner/admin של :guildId וגם שהבוט נמצא בשרת הזה.
+    // מגן על כל פעולה שמתייחסת לשרת ספציפי.
+    async function requireGuildAdmin(req, res, next) {
+        const token = getTokenFromRequest(req);
+        if (!token) return res.status(401).json({ error: "Unauthorized: missing token" });
+
+        const guildId = req.params.guildId;
+        if (!client.guilds.cache.has(guildId)) {
+            return res.status(404).json({ error: "Guild not found or bot is not in this guild" });
+        }
+
+        try {
+            const userGuilds = await fetchUserGuilds(token);
+            const match = Array.isArray(userGuilds) ? userGuilds.find(g => g.id === guildId) : null;
+            if (!match) {
+                return res.status(403).json({ error: "Access Denied: you do not manage this server" });
+            }
+            const isOwner = match.owner === true;
+            const isAdmin = (BigInt(match.permissions) & BigInt(ADMIN_PERMISSION_BIT)) === BigInt(ADMIN_PERMISSION_BIT);
+            if (!isOwner && !isAdmin) {
+                return res.status(403).json({ error: "Access Denied: administrator permission required" });
+            }
+            req.discordToken = token;
+            next();
+        } catch (err) {
+            const status = err.status === 401 ? 401 : 502;
+            res.status(status).json({ error: status === 401 ? "Invalid or expired token" : "Failed to verify permissions with Discord" });
+        }
+    }
     app.get('/api/auth/discord/redirect', async (req, res) => {
         const code = req.query.code;
         if (!code) {
@@ -84,11 +165,6 @@ function startWebServer(client) {
             res.status(500).send('Server Error during authentication');
         }
     });
-    app.use((req, res, next) => {
-        res.header("Access-Control-Allow-Origin", "*"); // או הכתובת הספציפית שלך
-        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-        next();
-    });
     app.get('/api/user/guilds', async (req, res) => {
         const token = req.headers.authorization;
         if (!token) return res.status(401).json({ error: 'Unauthorized' });
@@ -118,11 +194,6 @@ function startWebServer(client) {
     });
 
     // 3. דוגמה לנתיב API שמשתמש במידע שמגיע מהבוט עצמו
-    app.use((req, res, next) => {
-        res.header("Access-Control-Allow-Origin", "*"); // או הכתובת הספציפית שלך
-        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-        next();
-    });
     app.get('/api/bot-status', (req, res) => {
         if (!client.isReady()) {
             return res.status(503).json({ status: 'Bot is offline' });
@@ -137,23 +208,13 @@ function startWebServer(client) {
     });
 
     // 4. הגשת נתוני ה-Data של הפרויקט
-    app.use((req, res, next) => {
-        res.header("Access-Control-Allow-Origin", "*"); // או הכתובת הספציפית שלך
-        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-        next();
-    });
-    app.get('/api/data/guilds', (req, res) => {
+    app.get('/api/data/guilds', requireAuth, (req, res) => {
         // בעתיד, תוסיף כאן בדיקה שהמשתמש מחובר ויש לו הרשאות מתאימות
         const dataPath = path.join(__dirname, 'data', 'data_guilds.json');
         res.sendFile(dataPath);
     });
-    app.use((req, res, next) => {
-        res.header("Access-Control-Allow-Origin", "*"); // או הכתובת הספציפית שלך
-        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-        next();
-    });
     app.get('/api/dashboard-data', async (req, res) => {
-        const token = req.query.token;
+        const token = getTokenFromRequest(req);
         if (!token) {
             return res.status(401).json({ error: 'Missing token' });
         }
@@ -209,7 +270,7 @@ function startWebServer(client) {
     });
 
     // 1. שליפת כל הערוצים של שרת מסוים
-    app.get('/api/guilds/:guildId/channels', async (req, res) => {
+    app.get('/api/guilds/:guildId/channels', requireGuildAdmin, async (req, res) => {
         const guildId = req.params.guildId;
         // אימות טוקן יכול להיכנס כאן בעתיד
 
@@ -235,7 +296,7 @@ function startWebServer(client) {
     });
 
     // 2. שליפת ההגדרות הנוכחיות של השרת ממסד הנתונים
-    app.get('/api/guilds/:guildId/settings', async (req, res) => {
+    app.get('/api/guilds/:guildId/settings', requireGuildAdmin, async (req, res) => {
         const guildId = req.params.guildId;
 
         try {
@@ -249,7 +310,7 @@ function startWebServer(client) {
     });
 
     // 3. עדכון ושמירת הגדרות חדשות בשרת
-    app.post('/api/guilds/:guildId/settings', async (req, res) => {
+    app.post('/api/guilds/:guildId/settings', requireGuildAdmin, async (req, res) => {
         const guildId = req.params.guildId;
         const newSettings = req.body; // המידע שנשלח מה-Frontend דרך POST
 
@@ -276,7 +337,7 @@ function startWebServer(client) {
     });
 
     // א. שליפת רשימת החברים בשרת (עבור פקודת ה-Kick)
-    app.get('/api/guilds/:guildId/members', async (req, res) => {
+    app.get('/api/guilds/:guildId/members', requireGuildAdmin, async (req, res) => {
         const guildId = req.params.guildId;
         try {
             const guild = client.guilds.cache.get(guildId);
@@ -300,7 +361,7 @@ function startWebServer(client) {
     });
 
     // ב. פעולת זריקת משתמש (Kick)
-    app.post('/api/guilds/:guildId/actions/kick', async (req, res) => {
+    app.post('/api/guilds/:guildId/actions/kick', requireGuildAdmin, async (req, res) => {
         const guildId = req.params.guildId;
         const { userId } = req.body;
         
@@ -326,7 +387,7 @@ function startWebServer(client) {
     });
 
     // ג. פעולת יצירת חדר (Gen-Room)
-    app.post('/api/guilds/:guildId/actions/gen-room', async (req, res) => {
+    app.post('/api/guilds/:guildId/actions/gen-room', requireGuildAdmin, async (req, res) => {
         const guildId = req.params.guildId;
         const { roomName } = req.body;
         
@@ -355,7 +416,7 @@ function startWebServer(client) {
         }
     });
     // ד. שליפת חדרים קיימים של Gen-Room
-    app.get('/api/guilds/:guildId/gen-rooms', async (req, res) => {
+    app.get('/api/guilds/:guildId/gen-rooms', requireGuildAdmin, async (req, res) => {
         const guildId = req.params.guildId;
         try {
             const guild = client.guilds.cache.get(guildId);
@@ -382,7 +443,7 @@ function startWebServer(client) {
     });
 
     // ה. מחיקת חדר Gen-Room (גם מדיסקורד וגם מה-JSON)
-    app.delete('/api/guilds/:guildId/actions/gen-room/:channelId', async (req, res) => {
+    app.delete('/api/guilds/:guildId/actions/gen-room/:channelId', requireGuildAdmin, async (req, res) => {
         const { guildId, channelId } = req.params;
         
         try {
@@ -414,7 +475,7 @@ function startWebServer(client) {
 
     // הוסף את הראוט הזה בתוך הפונקציה startWebServer (ליד שאר הראוטים)
     app.get('/api/admin/bot-guilds', async (req, res) => {
-        const token = req.query.token;
+        const token = getTokenFromRequest(req);
         if (!token) return res.status(401).json({ error: 'No token provided' });
 
         try {

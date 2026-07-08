@@ -32,12 +32,14 @@ module.exports = {
                 const hasAdminRole = message.member.roles.cache.some(role => role.name === 'bot' || role.name === 'mod');
 
                 if (!hasAdminRole) {
-                    const tenMinutesAgo = Date.now() - (5 * 60 * 1000);
-                    // Count identical messages (same content and author) in the last 10 minutes
-                    const identicalMessagesCount = messagesArray.filter(msg => 
-                        msg.content === newMessage.content && 
+                    // חלון הזמן לזיהוי ספאם (מוגדר במקום אחד)
+                    const SPAM_WINDOW_MS = 5 * 60 * 1000; // 5 דקות
+                    const windowStart = Date.now() - SPAM_WINDOW_MS;
+                    // Count identical messages (same content and author) within the spam window
+                    const identicalMessagesCount = messagesArray.filter(msg =>
+                        msg.content === newMessage.content &&
                         msg.authorId === newMessage.authorId &&
-                        msg.timestamp >= tenMinutesAgo
+                        msg.timestamp >= windowStart
                     ).length;
 
                     if (identicalMessagesCount > 3) {
@@ -60,9 +62,9 @@ module.exports = {
 
                         // Delete the spam messages from their respective channels
                         for (const msg of messagesArray) {
-                            if (msg.content === newMessage.content && 
+                            if (msg.content === newMessage.content &&
                                 msg.authorId === newMessage.authorId &&
-                                msg.timestamp >= tenMinutesAgo) {
+                                msg.timestamp >= windowStart) {
                                 try {
                                     const channel = client.channels.cache.get(msg.channelId);
                                     if (channel) {
