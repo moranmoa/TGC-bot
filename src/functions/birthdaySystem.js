@@ -66,8 +66,27 @@ async function checkBirthdays(guild) {
     const isBirthdayToday = (birthday) =>
         birthday === todayStr || (leapBirthdayToday !== null && birthday === leapBirthdayToday);
 
+    // ברכה מאחרת: יום הולדת שכבר חלף החודש הזה ולא נשלחה עליו ברכה (הבוט היה
+    // למטה, תקלת רשת וכו'). מוגבל לחודש הנוכחי בכוונה, כדי שלא יישלחו ברכות
+    // באיחור של חודשים.
+    const todayDay = now.getDate();
+    const todayMonth = now.getMonth() + 1;
+    const isMissedThisMonth = (birthday) => {
+        const [day, month] = String(birthday || "").split("/").map(Number);
+        if (!Number.isInteger(day) || !Number.isInteger(month)) return false;
+        return month === todayMonth && day < todayDay;
+    };
+
     const bdayList = Array.isArray(guildData.aBirthDayList) ? guildData.aBirthDayList : [];
-    const due = bdayList.filter((u) => isBirthdayToday(u.birthday) && !u.announcedThisYear);
+    const due = [];
+    for (const userEntry of bdayList) {
+        if (userEntry.announcedThisYear) continue;
+        if (isBirthdayToday(userEntry.birthday)) {
+            due.push({ userEntry, late: false });
+        } else if (isMissedThisMonth(userEntry.birthday)) {
+            due.push({ userEntry, late: true });
+        }
+    }
     if (due.length === 0) return;
 
     const birthdayChannel = await resolveBirthdayChannel(guild, guildData.birthdayToast.channel);
@@ -76,10 +95,21 @@ async function checkBirthdays(guild) {
     // השליחה מתבצעת מחוץ למנעול השרת: בקשה לדיסקורד יכולה להיתקע דקות ארוכות
     // בתור ה-rate limit, ואסור להחזיק בגללה מנעול שחוסם אירועי presence/voice.
     const announced = new Set();
-    for (const userEntry of due) {
+    let lateCount = 0;
+    for (const { userEntry, late } of due) {
+        // בברכה מאחרת נכלל התאריך המקורי, כדי שיהיה ברור שהברכה התפספסה
+        const message = late
+            ? `🥳 מזל טוב ל- <@${userEntry.id}>! יום ההולדת שלך היה ב-${userEntry.birthday} והברכה התפספסה - יום הולדת שמח באיחור! 🎉`
+            : `🥳 מזל טוב ל- <@${userEntry.id}>! יום הולדת שמח! 🎉`;
         try {
-            await birthdayChannel.send(`🥳 מזל טוב ל- <@${userEntry.id}>! יום הולדת שמח! 🎉`);
+            await birthdayChannel.send(message);
             announced.add(userEntry.id);
+            if (late) {
+                lateCount++;
+                console.log(
+                    `[birthdays] ברכה מאחרת ל-${userEntry.id} בשרת ${guild.id}: יום הולדת ${userEntry.birthday}, היום ${todayStr}`
+                );
+            }
         } catch (err) {
             // לא מסמנים announcedThisYear - הבדיקה הבאה תנסה שוב בעוד 10 דקות,
             // כל עוד אנחנו בתוך החלון.
@@ -99,7 +129,10 @@ async function checkBirthdays(guild) {
             if (announced.has(u.id)) u.announcedThisYear = true;
         });
     });
-    console.log(`[birthdays] נשלחו ${announced.size} ברכות בשרת ${guild.id}`);
+    console.log(
+        `[birthdays] נשלחו ${announced.size} ברכות בשרת ${guild.id}` +
+            (lateCount ? ` (מהן ${lateCount} באיחור)` : "")
+    );
 }
 
 // פונקציית הפעלה דומה ל-Goblin
