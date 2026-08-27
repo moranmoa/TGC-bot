@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
-const { getGuildData, setGuildData } = require('../../events/activityUtils');
+const { updateGuildData } = require('../../events/activityUtils');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -14,20 +14,24 @@ module.exports = {
     async execute(interaction) {
         const enable = interaction.options.getBoolean('enable');
         const channel = interaction.options.getChannel('channel');
-        let guildData = await getGuildData(interaction.guild.id);
+        // קריאה-שינוי-כתיבה תחת מנעול השרת, אחרת אירוע presence/voice מקביל
+        // דורס את ההגדרות בעודנו מדווחים שהן עודכנו
+        await updateGuildData(interaction.guild.id, (guildData) => {
+            // פורסים את ההגדרות הקיימות כדי לא למחוק שדות פנימיים של המערכת
+            // (כמו lastResetYear) - מחיקה שלהם גורמת לאיפוס שנתי מיותר
+            guildData.birthdayToast = {
+                ...(guildData.birthdayToast || {}),
+                enabled: enable,
+                channel: channel.id,
+                lastCheckedDate: new Date().toLocaleDateString('en-GB') // פורמט DD/MM/YYYY
+            };
 
-        guildData.birthdayToast = {
-            enabled: enable,
-            channel: channel.id,
-            lastCheckedDate: new Date().toLocaleDateString('en-GB') // פורמט DD/MM/YYYY
-        };
+            // אתחול רשימת ימי ההולדת אם לא קיימת
+            if (!guildData.aBirthDayList) {
+                guildData.aBirthDayList = [];
+            }
+        });
 
-        // אתחול רשימת ימי ההולדת אם לא קיימת
-        if (!guildData.aBirthDayList) {
-            guildData.aBirthDayList = [];
-        }
-
-        await setGuildData(interaction.guild.id, guildData);
         await interaction.reply(`מערכת ימי ההולדת עודכנה: **${enable ? 'פעילה' : 'כבויה'}** בערוץ <#${channel.id}>`);
     },
 };

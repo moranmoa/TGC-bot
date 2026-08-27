@@ -4,8 +4,12 @@ FROM node:18-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# Install python3 and git
-RUN apt-get update && apt-get install -y git python3 make g++ && rm -rf /var/lib/apt/lists/*
+# Install python3, git and tzdata
+# tzdata נדרש כדי ש-TZ יעבוד: בלי מסד אזורי הזמן, getHours() חוזר ל-UTC בשקט
+RUN apt-get update && apt-get install -y git python3 make g++ tzdata && rm -rf /var/lib/apt/lists/*
+
+# שעון מקומי - חלון הברכות בקוד מבוסס על getHours() המקומי
+ENV TZ=Asia/Jerusalem
 
 # Clone the GitHub repository
 ARG GITHUB_REPO=https://github.com/moranmoa/TGC-bot.git

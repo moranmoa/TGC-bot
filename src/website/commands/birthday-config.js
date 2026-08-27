@@ -188,6 +188,8 @@ export async function render(container, command, guildId) {
         
         await saveGuildSettings(guildId, {
             birthdayToast: {
+                // שומרים על שדות פנימיים קיימים (lastResetYear) כדי שלא ימחקו בשמירה
+                ...birthdaySettings,
                 enabled: document.getElementById('bday-toggle').checked,
                 channel: document.getElementById('bday-channel').value,
                 lastCheckedDate: birthdaySettings.lastCheckedDate || new Date().toLocaleDateString('en-GB')

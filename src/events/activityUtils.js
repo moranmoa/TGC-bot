@@ -84,11 +84,13 @@ async function updateGuildData(guildId, mutator) {
         const data = await getGuildData(guildId);
         const result = await mutator(data);
         const toWrite = result === undefined ? data : result;
+        // הכשל מועבר לקורא (ולא רק נרשם ללוג) כדי שלא ידווח על שמירה שלא קרתה
         try {
             const filePath = path.join(dataDirPath, `data_${guildId}.json`);
             await atomicWriteFile(filePath, JSON.stringify(toWrite, null, 2));
         } catch (err) {
             console.error('Error writing guild data file for guildId', guildId, err);
+            throw err;
         }
         return toWrite;
     });
@@ -114,6 +116,24 @@ async function setMessagesData(guildId, data) {
     }
 }
 
+// שם ערוץ בדיסקורד מוגבל ל-100 תווים; חריגה מחזירה 400 והשם לא משתנה.
+// חותכים לפי נקודות-קוד ולא לפי slice כדי לא לשבור אימוג'י באמצע.
+const MAX_CHANNEL_NAME_LENGTH = 100;
+function capName(text) {
+    const chars = Array.from(text);
+    return chars.length > MAX_CHANNEL_NAME_LENGTH
+      ? chars.slice(0, MAX_CHANNEL_NAME_LENGTH).join('')
+      : text;
+}
+
+// activity.name ו-activity.state יכולים להיות null (למשל סטטוס מותאם עם אימוג'י
+// בלבד), וגם globalName. בלי הבדיקה הזאת נוצר שם ערוץ כמו "\u{1F4AC}null".
+function cleanText(value) {
+    if (typeof value !== 'string') return null;
+    const trimmed = value.trim();
+    return trimmed.length ? trimmed : null;
+}
+
 function getActivityName(User) {
     let activityName;
     let customStatusName;
@@ -123,16 +143,24 @@ function getActivityName(User) {
         activities.forEach((activity) => {
           console.log("**** activity ",activity.name," ",activity.state," ",activity.type)
           switch (activity.type) {
-            case 0: //'Game'
-              activityName = {"name": '\u{1F3AE}' +activity.name,
-                "type":activity.type
-              };
+            case 0: { //'Game'
+              const gameName = cleanText(activity.name);
+              if (gameName) {
+                activityName = {"name": capName('\u{1F3AE}' + gameName),
+                  "type":activity.type
+                };
+              }
               break;
-            case 4: //status
-              customStatusName = {"name": '\u{1F4AC}'+ activity.state,//U+1F4AC
-                "type":activity.type
-              };
+            }
+            case 4: { //status
+              const statusText = cleanText(activity.state);
+              if (statusText) {
+                customStatusName = {"name": capName('\u{1F4AC}' + statusText),//U+1F4AC
+                  "type":activity.type
+                };
+              }
               break;
+            }
             case 6: //'Hang Status'
               break;
           }
@@ -140,8 +168,14 @@ function getActivityName(User) {
       }
     } catch (e) {}
     activityName = activityName ? activityName : customStatusName; //if name or status
-    activityName = activityName ? activityName : {"name": '\u{1F464}'+User.user.globalName,"type":6}; //else username
-  
+    if (!activityName) { //else username
+      // מפל נפילה אחרון - חייב להיות תמיד ערך תקין, לכן שלוש אפשרויות
+      const fallback = cleanText(User.user.globalName)
+        || cleanText(User.user.username)
+        || User.user.id;
+      activityName = {"name": capName('\u{1F464}' + fallback),"type":6};
+    }
+
     return activityName;
   }
 
